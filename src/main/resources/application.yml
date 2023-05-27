@@ -1,4 +1,14 @@
-myGuild:
-  id: '1094555160732241961'
-  scheduleChannelName: 'stream-schedule'
-  notifyRoleId: '1111736118950510622'
+my-guild:
+  id: 1094555160732241961
+  schedule-channel-name: stream-schedule
+  notify-role-id: 1111736118950510622
+
+relative-placement:
+  big-bubble:
+    day-name:
+      X: 100
+      Y: 68
+  small-bubble:
+    day-name:
+      X: 86
+      Y: 42

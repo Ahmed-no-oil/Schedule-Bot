@@ -34,10 +34,10 @@ import java.time.format.TextStyle
 import java.util.*
 
 @Component
-class EventsListener(
-    @Value("\${myGuild.id}") val myGuildId: String,
-    @Value("\${myGuild.scheduleChannelName}") val scheduleChannelName: String,
-    @Value("\${myGuild.notifyRoleId}") val notifyRoleId: String
+class EventsListener(val imageBuilder: ScheduleImageBuilder,
+    @Value("\${my-guild.id}") val myGuildId: String,
+    @Value("\${my-guild.schedule-channel-name}") val scheduleChannelName: String,
+    @Value("\${my-guild.notify-role-id}") val notifyRoleId: String
 ) : EventListener {
 
     companion object {
@@ -76,7 +76,7 @@ class EventsListener(
             "publishBtn" -> {
                 event.deferEdit().queue()
                 //build schedule
-                val imageStream = ScheduleImageBuilder(weekData).drawBackground().drawBubbles().build()
+                val imageStream = imageBuilder.create(weekData).drawBackground().drawBubbles().writeDaysNames().build()
                 //post schedule
                 val msgContent = if (shouldNotify) "<@&$notifyRoleId> $postMessage" else postMessage
                 event.guild!!.getTextChannelsByName(scheduleChannelName, true).firstOrNull()

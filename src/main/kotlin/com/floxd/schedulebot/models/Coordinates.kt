@@ -2,7 +2,7 @@ package com.floxd.schedulebot.models
 
 import com.fasterxml.jackson.annotation.JsonProperty
 
-class BubbleCoordinates(
+class Coordinates(
     @JsonProperty("X")
     val x: Int,
     @JsonProperty("Y")
