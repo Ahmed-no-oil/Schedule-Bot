@@ -3,7 +3,6 @@ package com.floxd.schedulebot.services
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.floxd.schedulebot.models.Coordinates
 import com.floxd.schedulebot.models.DayInSchedule
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.awt.Color
 import java.awt.Font
@@ -11,13 +10,12 @@ import java.awt.FontFormatException
 import java.awt.Graphics
 import java.awt.image.BufferedImage
 import java.io.*
+import java.time.format.TextStyle
+import java.util.*
 import javax.imageio.ImageIO
 
 @Component
-class ScheduleImageBuilder(
-    @Value("\${relative-placement.big-bubble.day-name}") val dayBigB: Coordinates,
-    @Value("\${relative-placement.small-bubble.day-name}") val daySmallB: Coordinates
-) {
+class ScheduleImageBuilder() {
     private lateinit var weekData: MutableList<DayInSchedule>
     private lateinit var image: BufferedImage
     private lateinit var graphics: Graphics
@@ -26,6 +24,11 @@ class ScheduleImageBuilder(
     private lateinit var bubbleBigYes: BufferedImage
     private lateinit var bubbleSmallNo: BufferedImage
     private lateinit var bubbleSmallYes: BufferedImage
+    private lateinit var fontKiwiDays: Font
+    private lateinit var bubblesCoordinates: MutableList<Coordinates>
+
+    final val DAY_NAME_PADDING_BIG: Coordinates = Coordinates(100, 62)
+    final val DAY_NAME_PADDING_SMALL: Coordinates = Coordinates(86, 32)
 
     fun create(data: MutableList<DayInSchedule>): ScheduleImageBuilder {
         weekData = data
@@ -39,9 +42,9 @@ class ScheduleImageBuilder(
         graphics = image.graphics
         // add font
         try {
-            graphics.font = Font.createFont(
+            fontKiwiDays = Font.createFont(
                 Font.TRUETYPE_FONT, File(
-                    this::class.java.getResource("/fonts/Kiwi Days.ttf")?.file
+                    this::class.java.getResource("/fonts/Kiwi_Days.ttf")?.file
                         ?: throw IOException("couldn't find font file")
                 )
             )
@@ -50,6 +53,20 @@ class ScheduleImageBuilder(
         } catch (e: FontFormatException) {
             println(e)
         }
+
+        val mapper = ObjectMapper()
+        val jsonFile = File(
+            this::class.java.getResource("/JSON.documents/bubbles.json")?.file
+                ?: throw Exception("couldn't find JSON file")
+        )
+        //Read points from the JSON file associated with the template
+        bubblesCoordinates = mapper.readValue(
+            jsonFile.readText(),
+            mapper.typeFactory.constructCollectionType(
+                MutableList::class.java,
+                Coordinates::class.java
+            )
+        )
         return this
     }
 
@@ -59,19 +76,6 @@ class ScheduleImageBuilder(
     }
 
     fun drawBubbles(): ScheduleImageBuilder {
-        val mapper = ObjectMapper()
-        val jsonFile = File(
-            this::class.java.getResource("/JSON.documents/bubbles.json")?.file
-                ?: throw Exception("couldn't find JSON file")
-        )
-        //Read points from the JSON file associated with the template
-        val bubblesCoordinates: MutableList<Coordinates> = mapper.readValue(
-            jsonFile.readText(),
-            mapper.typeFactory.constructCollectionType(
-                MutableList::class.java,
-                Coordinates::class.java
-            )
-        )
         weekData.forEach {
             //add the bubble
             var bubbleImage: BufferedImage
@@ -95,7 +99,24 @@ class ScheduleImageBuilder(
     }
 
     fun writeDaysNames(): ScheduleImageBuilder {
-        graphics.color = Color.getColor("#ff0075")
+        graphics.color = Color.decode("#e00266")
+        var dayName: String
+        graphics.font = fontKiwiDays.deriveFont(52f)
+        val fontMetrics = graphics.fontMetrics
+        weekData.forEach {
+            dayName = it.day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+            var x = 0
+            var y = 0
+            if (it.day.value <= 3) {
+                x = bubblesCoordinates[it.day.value - 1].x + DAY_NAME_PADDING_BIG.x
+                y = bubblesCoordinates[it.day.value - 1].y + DAY_NAME_PADDING_BIG.y + fontMetrics.height
+            } else {
+                x = bubblesCoordinates[it.day.value - 1].x + DAY_NAME_PADDING_SMALL.x
+                y = bubblesCoordinates[it.day.value - 1].y + DAY_NAME_PADDING_SMALL.y + fontMetrics.height
+            }
+            graphics.drawString(dayName, x, y)
+        }
+
         return this
     }
 

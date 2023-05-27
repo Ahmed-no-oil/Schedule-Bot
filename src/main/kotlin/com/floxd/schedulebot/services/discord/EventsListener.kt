@@ -162,6 +162,13 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
     private fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         when (event.subcommandGroup) {
             "set" -> {
+                // only for debugging
+                if(event.subcommandName.equals("filled")){
+                    DayOfWeek.values().forEach {
+                        weekData.add(DayInSchedule(it))
+                    }
+                }
+
                 isSettingThisWeek = event.subcommandName.equals("this_week")
                 val firstLine =
                     if (isSettingThisWeek) "Set this week's schedule ${thisWeekDates()}" else "Set next week's schedule ${nextWeekDates()}"
@@ -183,7 +190,8 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
                 Commands.slash("schedule", "Stream schedule").addSubcommandGroups(
                     SubcommandGroupData("set", "Set stream schedule").addSubcommands(
                         SubcommandData("this_week", "set stream schedule"),
-                        SubcommandData("next_week", "set stream schedule")
+                        SubcommandData("next_week", "set stream schedule"),
+                        SubcommandData("filled", "fill stream schedule with no stream"),
                     )
                 ).setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
             ).queue()
