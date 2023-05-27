@@ -18,7 +18,8 @@ repositories {
 dependencies {
 	implementation("net.dv8tion:JDA:5.0.0-beta.9")
 	implementation("org.springframework.boot:spring-boot-starter-web")
-	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.1")
+	implementation("org.xerial:sqlite-jdbc:3.40.1.0")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
