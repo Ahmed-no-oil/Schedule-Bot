@@ -30,11 +30,13 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.Month
 import java.time.format.TextStyle
 import java.util.*
 
 @Component
-class EventsListener(val imageBuilder: ScheduleImageBuilder,
+class EventsListener(
+    var imageBuilder: ScheduleImageBuilder,
     @Value("\${my-guild.id}") val myGuildId: String,
     @Value("\${my-guild.schedule-channel-name}") val scheduleChannelName: String,
     @Value("\${my-guild.notify-role-id}") val notifyRoleId: String
@@ -49,6 +51,7 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
     }
 
     override fun onEvent(event: GenericEvent) {
+        //todo add logging
         if (event is GuildReadyEvent) onGuildReady(event)
         if (event is SlashCommandInteractionEvent) onSlashCommandInteraction(event)
         if (event is StringSelectInteractionEvent) onStringSelectInteraction(event)
@@ -76,7 +79,11 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
             "publishBtn" -> {
                 event.deferEdit().queue()
                 //build schedule
-                val imageStream = imageBuilder.create(weekData).drawBackground().drawBubbles().writeDaysNames().writeStreamOrNot().writeTimes().writeComments().build()
+                val weekDates = if(isSettingThisWeek) thisWeekDates() else nextWeekDates()
+                imageBuilder.create(weekData).drawBackground().drawWeekDates(weekDates).drawBubbles().writeDaysNames().writeStreamOrNot().writeTimes().writeComments()
+                if(LocalDate.now().month== Month.DECEMBER && LocalDate.now().dayOfMonth >= 10)
+                    imageBuilder.drawXmasHat()
+                val imageStream = imageBuilder.build()
                 //post schedule
                 val msgContent = if (shouldNotify) "<@&$notifyRoleId> $postMessage" else postMessage
                 event.guild!!.getTextChannelsByName(scheduleChannelName, true).firstOrNull()
@@ -239,7 +246,7 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
             it[Calendar.DAY_OF_WEEK] = it.firstDayOfWeek
             result = it[Calendar.DAY_OF_MONTH].toString()
             it.add(Calendar.DAY_OF_WEEK, 6)
-            result += "–" + SimpleDateFormat("dd MMM", Locale.ENGLISH).format(it.time)
+            result += "-" + SimpleDateFormat("dd MMM", Locale.ENGLISH).format(it.time)
         }
         return result
     }
@@ -251,7 +258,7 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
             it[Calendar.DAY_OF_WEEK] = it.firstDayOfWeek
             result = it[Calendar.DAY_OF_MONTH].toString()
             it.add(Calendar.DAY_OF_WEEK, 6)
-            result += "–" + SimpleDateFormat("dd MMM", Locale.ENGLISH).format(it.time)
+            result += "-" + SimpleDateFormat("dd MMM", Locale.ENGLISH).format(it.time)
         }
         return result
     }

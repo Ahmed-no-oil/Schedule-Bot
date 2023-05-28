@@ -7,7 +7,8 @@ import org.springframework.stereotype.Component
 import java.awt.Color
 import java.awt.Font
 import java.awt.FontFormatException
-import java.awt.Graphics
+import java.awt.Graphics2D
+import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
 import java.io.*
 import java.time.format.TextStyle
@@ -18,7 +19,7 @@ import javax.imageio.ImageIO
 class ScheduleImageBuilder() {
     private lateinit var weekData: MutableList<DayInSchedule>
     private lateinit var image: BufferedImage
-    private lateinit var graphics: Graphics
+    private lateinit var graphics: Graphics2D
     private lateinit var background: BufferedImage
     private lateinit var bubbleBigNo: BufferedImage
     private lateinit var bubbleBigYes: BufferedImage
@@ -31,6 +32,7 @@ class ScheduleImageBuilder() {
     final val PADDING_SMALL_BUBBLE: Coordinates = Coordinates(86, 32)
     final val CENTER_BIG_BUBBLE: Coordinates = Coordinates(269,222)
     final val CENTER_SMALL_BUBBLE: Coordinates = Coordinates(220,182)
+    final val WEEK_DATES_COORDS: Coordinates = Coordinates(1570, 350)
 
     fun create(data: MutableList<DayInSchedule>): ScheduleImageBuilder {
         weekData = data
@@ -41,7 +43,7 @@ class ScheduleImageBuilder() {
         bubbleSmallYes = getImageRes("/images/yes_bubble_frame.png")
 
         image = BufferedImage(background.width, background.height, BufferedImage.TYPE_INT_ARGB)
-        graphics = image.graphics
+        graphics = image.createGraphics()
         // add font
         try {
             fontKiwiDays = Font.createFont(
@@ -107,8 +109,8 @@ class ScheduleImageBuilder() {
         val fontMetrics = graphics.fontMetrics
         weekData.forEach {
             dayName = it.day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
-            var x = 0
-            var y = 0
+            var x : Int
+            var y : Int
             if (it.day.value <= 3) {
                 x = bubblesCoordinates[it.day.value - 1].x + PADDING_BIG_BUBBLE.x
                 y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height
@@ -124,13 +126,13 @@ class ScheduleImageBuilder() {
     fun writeStreamOrNot(): ScheduleImageBuilder {
         graphics.color = Color.decode("#5176a6")
         var streamOrNot: String
-        graphics.font = fontKiwiDays.deriveFont(60f)
+        graphics.font = fontKiwiDays.deriveFont(Font.BOLD ,60f)
         val fontMetrics = graphics.fontMetrics
         weekData.forEach {
             streamOrNot = if(it.isGoingToStream) "STREAM" else "NO STREAM"
             if(it.day.value ==1 && it.isGoingToStream) streamOrNot = "STREAMI"
-            var x = 0
-            var y = 0
+            var x :Int
+            var y : Int
             if (it.day.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
@@ -148,13 +150,12 @@ class ScheduleImageBuilder() {
     fun writeTimes(): ScheduleImageBuilder {
         graphics.color = Color.decode("#5176a6")
         var streamTime: String
-        graphics.font = fontKiwiDays.deriveFont(60f)
+        graphics.font = fontKiwiDays.deriveFont(Font.BOLD ,60f)
         val fontMetrics = graphics.fontMetrics
-        graphics.font = fontKiwiDays.deriveFont(60f)
         weekData.forEach {
             streamTime = it.timeComment
-            var x = 0
-            var y = 0
+            var x : Int
+            var y : Int
             if (it.day.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
@@ -172,12 +173,12 @@ class ScheduleImageBuilder() {
     fun writeComments(): ScheduleImageBuilder {
         graphics.color = Color.decode("#5176a6")
         var comment: String
-        graphics.font = fontKiwiDays.deriveFont(36f)
+        graphics.font = fontKiwiDays.deriveFont(Font.PLAIN ,36f)
         val fontMetrics = graphics.fontMetrics
         weekData.forEach {
             comment = it.comment
-            var x = 0
-            var y = 0
+            var x :Int
+            var y :Int
             if (it.day.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
@@ -193,12 +194,31 @@ class ScheduleImageBuilder() {
         return this
     }
 
+    fun drawWeekDates(weekDates: String): ScheduleImageBuilder {
+        val rotation = AffineTransform()
+        rotation.rotate(Math.toRadians(18.0), WEEK_DATES_COORDS.x.toDouble(), WEEK_DATES_COORDS.y.toDouble())
+        graphics.font = fontKiwiDays.deriveFont(Font.BOLD ,60f)
+        graphics.color = Color.decode("#eca7c5")
+        graphics.transform(rotation)
+        graphics.drawString(weekDates, WEEK_DATES_COORDS.x, WEEK_DATES_COORDS.y)
+        //reset graphics
+        graphics.dispose()
+        graphics = image.createGraphics()
+        return this
+    }
+
+    fun drawXmasHat() :ScheduleImageBuilder{
+        //todo draw xmas hat
+        return this
+    }
+
     fun build(): InputStream {
         val output = ByteArrayOutputStream()
         ImageIO.write(image, "png", output)
         graphics.dispose()
         return ByteArrayInputStream(output.toByteArray())
     }
+
 
     private fun getImageRes(name: String): BufferedImage {
         return ImageIO.read(this::class.java.getResourceAsStream(name))
