@@ -210,13 +210,13 @@ class EventsListener(
         var publishBtn = Button.success("publishBtn", "Publish")
         if (!publishBtnEnabled) publishBtn = publishBtn.asDisabled()
         val dayInput: ItemComponent =
-            StringSelectMenu.create("dayInput").setMaxValues(1).setPlaceholder("Day to set...").addOptions(weekOptions)
+            StringSelectMenu.create("dayInput").setMaxValues(1).setPlaceholder("Select a day to set").addOptions(weekOptions)
                 .build()
         val actionRows = mutableListOf<LayoutComponent>()
 
         actionRows.add(ActionRow.of(dayInput))
-        actionRows.add(ActionRow.of(Button.primary("setBtn", "Set")))
-        actionRows.add(ActionRow.of(Button.primary("notifMsgBtn", "Notification & Message")))
+        actionRows.add(ActionRow.of(Button.primary("setBtn", "Set...")))
+        actionRows.add(ActionRow.of(Button.primary("notifMsgBtn", "Notification & Message...")))
         actionRows.add(ActionRow.of(Button.secondary("cancelBtn", "Cancel"), publishBtn))
         return actionRows
     }
