@@ -27,8 +27,10 @@ class ScheduleImageBuilder() {
     private lateinit var fontKiwiDays: Font
     private lateinit var bubblesCoordinates: MutableList<Coordinates>
 
-    final val DAY_NAME_PADDING_BIG: Coordinates = Coordinates(100, 62)
-    final val DAY_NAME_PADDING_SMALL: Coordinates = Coordinates(86, 32)
+    final val PADDING_BIG_BUBBLE: Coordinates = Coordinates(100, 62)
+    final val PADDING_SMALL_BUBBLE: Coordinates = Coordinates(86, 32)
+    final val CENTER_BIG_BUBBLE: Coordinates = Coordinates(269,222)
+    final val CENTER_SMALL_BUBBLE: Coordinates = Coordinates(220,182)
 
     fun create(data: MutableList<DayInSchedule>): ScheduleImageBuilder {
         weekData = data
@@ -108,34 +110,88 @@ class ScheduleImageBuilder() {
             var x = 0
             var y = 0
             if (it.day.value <= 3) {
-                x = bubblesCoordinates[it.day.value - 1].x + DAY_NAME_PADDING_BIG.x
-                y = bubblesCoordinates[it.day.value - 1].y + DAY_NAME_PADDING_BIG.y + fontMetrics.height
+                x = bubblesCoordinates[it.day.value - 1].x + PADDING_BIG_BUBBLE.x
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height
             } else {
-                x = bubblesCoordinates[it.day.value - 1].x + DAY_NAME_PADDING_SMALL.x
-                y = bubblesCoordinates[it.day.value - 1].y + DAY_NAME_PADDING_SMALL.y + fontMetrics.height
+                x = bubblesCoordinates[it.day.value - 1].x + PADDING_SMALL_BUBBLE.x
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height
             }
             graphics.drawString(dayName, x, y)
         }
-
         return this
     }
 
-
     fun writeStreamOrNot(): ScheduleImageBuilder {
-        //todo
+        graphics.color = Color.decode("#5176a6")
+        var streamOrNot: String
+        graphics.font = fontKiwiDays.deriveFont(60f)
+        val fontMetrics = graphics.fontMetrics
+        weekData.forEach {
+            streamOrNot = if(it.isGoingToStream) "STREAM" else "NO STREAM"
+            if(it.day.value ==1 && it.isGoingToStream) streamOrNot = "STREAMI"
+            var x = 0
+            var y = 0
+            if (it.day.value <= 3) {
+                //adjust center
+                x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
+                //write on the second line
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 2
+            } else {
+                x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 2 -20
+            }
+            graphics.drawString(streamOrNot, x, y)
+        }
         return this
     }
 
     fun writeTimes(): ScheduleImageBuilder {
-        //todo
+        graphics.color = Color.decode("#5176a6")
+        var streamTime: String
+        graphics.font = fontKiwiDays.deriveFont(60f)
+        val fontMetrics = graphics.fontMetrics
+        graphics.font = fontKiwiDays.deriveFont(60f)
+        weekData.forEach {
+            streamTime = it.timeComment
+            var x = 0
+            var y = 0
+            if (it.day.value <= 3) {
+                //adjust center
+                x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
+                //write on the third line
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 3
+            } else {
+                x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 3 -20
+            }
+            graphics.drawString(streamTime, x, y)
+        }
         return this
     }
 
     fun writeComments(): ScheduleImageBuilder {
-        //todo
+        graphics.color = Color.decode("#5176a6")
+        var comment: String
+        graphics.font = fontKiwiDays.deriveFont(36f)
+        val fontMetrics = graphics.fontMetrics
+        weekData.forEach {
+            comment = it.comment
+            var x = 0
+            var y = 0
+            if (it.day.value <= 3) {
+                //adjust center
+                x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
+                //go up 2 lines from the bottom
+                y = bubblesCoordinates[it.day.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 2
+            } else {
+                x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
+                //go up 3 lines from the bottom
+                y = bubblesCoordinates[it.day.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 3
+            }
+            graphics.drawString(comment, x, y)
+        }
         return this
     }
-
 
     fun build(): InputStream {
         val output = ByteArrayOutputStream()

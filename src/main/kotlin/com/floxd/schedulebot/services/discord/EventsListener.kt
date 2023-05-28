@@ -76,7 +76,7 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
             "publishBtn" -> {
                 event.deferEdit().queue()
                 //build schedule
-                val imageStream = imageBuilder.create(weekData).drawBackground().drawBubbles().writeDaysNames().build()
+                val imageStream = imageBuilder.create(weekData).drawBackground().drawBubbles().writeDaysNames().writeStreamOrNot().writeTimes().writeComments().build()
                 //post schedule
                 val msgContent = if (shouldNotify) "<@&$notifyRoleId> $postMessage" else postMessage
                 event.guild!!.getTextChannelsByName(scheduleChannelName, true).firstOrNull()
@@ -162,12 +162,6 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
     private fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
         when (event.subcommandGroup) {
             "set" -> {
-                // only for debugging
-                if(event.subcommandName.equals("filled")){
-                    DayOfWeek.values().forEach {
-                        weekData.add(DayInSchedule(it))
-                    }
-                }
 
                 isSettingThisWeek = event.subcommandName.equals("this_week")
                 val firstLine =
@@ -190,8 +184,7 @@ class EventsListener(val imageBuilder: ScheduleImageBuilder,
                 Commands.slash("schedule", "Stream schedule").addSubcommandGroups(
                     SubcommandGroupData("set", "Set stream schedule").addSubcommands(
                         SubcommandData("this_week", "set stream schedule"),
-                        SubcommandData("next_week", "set stream schedule"),
-                        SubcommandData("filled", "fill stream schedule with no stream"),
+                        SubcommandData("next_week", "set stream schedule")
                     )
                 ).setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
             ).queue()
