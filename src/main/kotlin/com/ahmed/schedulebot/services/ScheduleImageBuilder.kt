@@ -1,8 +1,8 @@
-package com.floxd.schedulebot.services
+package com.ahmed.schedulebot.services
 
+import com.ahmed.schedulebot.models.Coordinates
+import com.ahmed.schedulebot.models.DayInSchedule
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.floxd.schedulebot.models.Coordinates
-import com.floxd.schedulebot.models.DayInSchedule
 import org.springframework.stereotype.Component
 import java.awt.Color
 import java.awt.Font
@@ -30,8 +30,8 @@ class ScheduleImageBuilder() {
 
     final val PADDING_BIG_BUBBLE: Coordinates = Coordinates(100, 62)
     final val PADDING_SMALL_BUBBLE: Coordinates = Coordinates(86, 32)
-    final val CENTER_BIG_BUBBLE: Coordinates = Coordinates(269,222)
-    final val CENTER_SMALL_BUBBLE: Coordinates = Coordinates(220,182)
+    final val CENTER_BIG_BUBBLE: Coordinates = Coordinates(269, 222)
+    final val CENTER_SMALL_BUBBLE: Coordinates = Coordinates(220, 182)
     final val WEEK_DATES_COORDS: Coordinates = Coordinates(1570, 350)
 
     fun create(data: MutableList<DayInSchedule>): ScheduleImageBuilder {
@@ -47,10 +47,10 @@ class ScheduleImageBuilder() {
         // add font
         try {
             fontKiwiDays = Font.createFont(
-                Font.TRUETYPE_FONT, File(
+                    Font.TRUETYPE_FONT, File(
                     this::class.java.getResource("/fonts/Kiwi_Days.ttf")?.file
-                        ?: throw IOException("couldn't find font file")
-                )
+                            ?: throw IOException("couldn't find font file")
+            )
             )
         } catch (e: IOException) {
             println(e)
@@ -60,16 +60,16 @@ class ScheduleImageBuilder() {
 
         val mapper = ObjectMapper()
         val jsonFile = File(
-            this::class.java.getResource("/JSON.documents/bubbles.json")?.file
-                ?: throw Exception("couldn't find JSON file")
+                this::class.java.getResource("/JSON.documents/bubbles.json")?.file
+                        ?: throw Exception("couldn't find JSON file")
         )
         //Read points from the JSON file associated with the template
         bubblesCoordinates = mapper.readValue(
-            jsonFile.readText(),
-            mapper.typeFactory.constructCollectionType(
-                MutableList::class.java,
-                Coordinates::class.java
-            )
+                jsonFile.readText(),
+                mapper.typeFactory.constructCollectionType(
+                        MutableList::class.java,
+                        Coordinates::class.java
+                )
         )
         return this
     }
@@ -109,8 +109,8 @@ class ScheduleImageBuilder() {
         val fontMetrics = graphics.fontMetrics
         weekData.forEach {
             dayName = it.day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
-            var x : Int
-            var y : Int
+            var x: Int
+            var y: Int
             if (it.day.value <= 3) {
                 x = bubblesCoordinates[it.day.value - 1].x + PADDING_BIG_BUBBLE.x
                 y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height
@@ -126,13 +126,13 @@ class ScheduleImageBuilder() {
     fun writeStreamOrNot(): ScheduleImageBuilder {
         graphics.color = Color.decode("#5176a6")
         var streamOrNot: String
-        graphics.font = fontKiwiDays.deriveFont(Font.BOLD ,60f)
+        graphics.font = fontKiwiDays.deriveFont(Font.BOLD, 60f)
         val fontMetrics = graphics.fontMetrics
         weekData.forEach {
-            streamOrNot = if(it.isGoingToStream) "STREAM" else "NO STREAM"
-            if(it.day.value ==1 && it.isGoingToStream) streamOrNot = "STREAMI"
-            var x :Int
-            var y : Int
+            streamOrNot = if (it.isGoingToStream) "STREAM" else "NO STREAM"
+            if (it.day.value == 1 && it.isGoingToStream) streamOrNot = "STREAMI"
+            var x: Int
+            var y: Int
             if (it.day.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
@@ -140,7 +140,7 @@ class ScheduleImageBuilder() {
                 y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 2
             } else {
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 2 -20
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 2 - 20
             }
             graphics.drawString(streamOrNot, x, y)
         }
@@ -150,12 +150,12 @@ class ScheduleImageBuilder() {
     fun writeTimes(): ScheduleImageBuilder {
         graphics.color = Color.decode("#5176a6")
         var streamTime: String
-        graphics.font = fontKiwiDays.deriveFont(Font.BOLD ,60f)
+        graphics.font = fontKiwiDays.deriveFont(Font.BOLD, 60f)
         val fontMetrics = graphics.fontMetrics
         weekData.forEach {
             streamTime = it.timeComment
-            var x : Int
-            var y : Int
+            var x: Int
+            var y: Int
             if (it.day.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
@@ -163,7 +163,7 @@ class ScheduleImageBuilder() {
                 y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 3
             } else {
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 3 -20
+                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 3 - 20
             }
             graphics.drawString(streamTime, x, y)
         }
@@ -173,12 +173,12 @@ class ScheduleImageBuilder() {
     fun writeComments(): ScheduleImageBuilder {
         graphics.color = Color.decode("#5176a6")
         var comment: String
-        graphics.font = fontKiwiDays.deriveFont(Font.PLAIN ,36f)
+        graphics.font = fontKiwiDays.deriveFont(Font.PLAIN, 36f)
         val fontMetrics = graphics.fontMetrics
         weekData.forEach {
             comment = it.comment
-            var x :Int
-            var y :Int
+            var x: Int
+            var y: Int
             if (it.day.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
@@ -197,7 +197,7 @@ class ScheduleImageBuilder() {
     fun drawWeekDates(weekDates: String): ScheduleImageBuilder {
         val rotation = AffineTransform()
         rotation.rotate(Math.toRadians(18.0), WEEK_DATES_COORDS.x.toDouble(), WEEK_DATES_COORDS.y.toDouble())
-        graphics.font = fontKiwiDays.deriveFont(Font.BOLD ,60f)
+        graphics.font = fontKiwiDays.deriveFont(Font.BOLD, 60f)
         graphics.color = Color.decode("#eca7c5")
         graphics.transform(rotation)
         graphics.drawString(weekDates, WEEK_DATES_COORDS.x, WEEK_DATES_COORDS.y)
@@ -207,7 +207,7 @@ class ScheduleImageBuilder() {
         return this
     }
 
-    fun drawXmasHat() :ScheduleImageBuilder{
+    fun drawXmasHat(): ScheduleImageBuilder {
         //todo draw xmas hat
         return this
     }
@@ -222,6 +222,6 @@ class ScheduleImageBuilder() {
 
     private fun getImageRes(name: String): BufferedImage {
         return ImageIO.read(this::class.java.getResourceAsStream(name))
-            ?: throw Exception("couldn't find image: $name")
+                ?: throw Exception("couldn't find image: $name")
     }
 }
