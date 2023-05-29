@@ -1,4 +1,4 @@
-package com.floxd.schedulebot
+package com.ahmed.schedulebot
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class ScheduleBotApplication
 
 fun main(args: Array<String>) {
-	runApplication<ScheduleBotApplication>(*args)
+    runApplication<ScheduleBotApplication>(*args)
 }
