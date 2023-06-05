@@ -2,6 +2,7 @@ package com.ahmed.schedulebot.entities
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import java.time.OffsetDateTime
 
 @Entity
 @Table(name = "schedule_entries")
@@ -10,7 +11,7 @@ class ScheduleEntry(){
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Int = 0
     var timeComment: String = ""
-    var dateTime: LocalDateTime = LocalDateTime.MIN
+    var dateTime: OffsetDateTime = OffsetDateTime.MIN
     var isGoingToStream: Boolean = false
     var comment: String = ""
 

@@ -29,14 +29,11 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 import net.dv8tion.jda.api.interactions.modals.Modal
 import net.dv8tion.jda.api.utils.FileUpload
+import okhttp3.internal.UTC
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.text.SimpleDateFormat
-import java.time.DayOfWeek
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.Month
+import java.time.*
 import java.time.format.TextStyle
 import java.util.*
 
@@ -94,7 +91,7 @@ class EventsListener(
                     event.hook.editOriginal("Data in this command was lost. Start a new one").setComponents().queue()
                     return
                 }
-                dataService.saveWeekData(getWeekNumber(), weekData)
+                dataService.saveWeekData(getWeekNumber(null), weekData)
                 //build schedule image
                 imageBuilder.create(weekData).drawBackground().drawWeekDates(getWeekDates()).drawBubbles()
                     .writeDaysNames().writeStreamOrNot().writeTimes().writeComments()
@@ -106,15 +103,16 @@ class EventsListener(
                     ?.sendFiles(FileUpload.fromData(imageStream, "schedule " + LocalDate.now().toString() + ".png"))
                     ?.setContent(msgContent)?.queue()
                     ?: run {
-                    event.guild!!.getNewsChannelById(scheduleChannelId)?.sendFiles(
-                        FileUpload.fromData(imageStream, "schedule" + LocalDate.now().toString() + ".png")
-                    )?.setContent(msgContent)?.queue()
-                        ?: run {
-                        event.hook.editOriginal("error: couldn't find the channel $scheduleChannelId").setComponents()
-                            .queue()
-                            return
+                        event.guild!!.getNewsChannelById(scheduleChannelId)?.sendFiles(
+                            FileUpload.fromData(imageStream, "schedule" + LocalDate.now().toString() + ".png")
+                        )?.setContent(msgContent)?.queue()
+                            ?: run {
+                                event.hook.editOriginal("error: couldn't find the channel $scheduleChannelId")
+                                    .setComponents()
+                                    .queue()
+                                return
+                            }
                     }
-                }
                 historyLogger.log("published schedule", event.user.name)
                 event.hook.editOriginal(event.message.contentRaw + "\nSchedule was published").setComponents().queue()
             }
@@ -148,8 +146,13 @@ class EventsListener(
                 entry.isGoingToStream = event.getValue("streamOrNot")!!.asString.contains("ye", true)
                 event.getValue("streamTime")?.let { entry.timeComment = it.asString }
                 event.getValue("streamTime_data")?.let {
-                    if (it.asString.isNotEmpty()) try {
-                        entry.dateTime = LocalDateTime.of(LocalDate.now(), LocalTime.parse(it.asString))
+                    var time = it.asString
+                    if (time.isEmpty())
+                        time = "00:00"
+                    try {
+                        entry.dateTime = LocalDateTime.of(getDayDate(), LocalTime.parse(time)).atOffset(
+                            ZoneOffset.UTC
+                        )
                     } catch (e: Exception) {
                         event.hook.sendMessage("The bot couldn't read the 3rd field. Please write it in hh:mm format")
                             .setEphemeral(true).queue()
@@ -186,33 +189,54 @@ class EventsListener(
     }
 
     private fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
-        when (event.subcommandGroup) {
-            "set" -> {
-                isNewSetCommandInteraction = true
-                isSettingThisWeek = event.subcommandName.equals("this_week")
-                //try to get data from database
-                weekData = dataService.findWeekData(getWeekNumber()) ?: mutableListOf()
-                val firstLine =
-                    (if (isSettingThisWeek) "Set this week's schedule " else "Set next week's schedule ") + getWeekDates()
-                weekData.sortBy { it.day.name.value }
-                var savedData = ""
-                weekData.forEach {
-                    savedData += "\n $it"
+        when (event.name) {
+            "schedule" -> {
+                event.deferReply().queue()
+                when (event.subcommandGroup) {
+                    "set" -> {
+                        isNewSetCommandInteraction = true
+                        isSettingThisWeek = event.subcommandName.equals("this_week")
+                        //try to get data from database
+                        weekData = dataService.findWeekData(getWeekNumber(null)) ?: mutableListOf()
+                        val firstLine =
+                            (if (isSettingThisWeek) "Set this week's schedule " else "Set next week's schedule ") + getWeekDates()
+                        weekData.sortBy { it.day.name.value }
+                        var savedData = ""
+                        weekData.forEach {
+                            savedData += "\n $it"
+                        }
+                        val notifMsg = if (shouldNotify) "\nNotification: Yes" else "\nNotification: NO"
+                        event.hook.sendMessage(firstLine + savedData + notifMsg)
+                            .addComponents(componentsForCommandsSet(weekData.count() == 7)).queue()
+                    }
+
+                    "history" -> {
+                        if (event.subcommandName == "show_log") {
+                            val history = historyLogger.getLast20Logs()
+                            var message = "The last 20 command interactions:"
+                            history.forEach {
+                                message += "\n* $it"
+                            }
+                            event.hook.sendMessage(message).queue()
+                        }
+                    }
                 }
-                val notifMsg = if (shouldNotify) "\nNotification: Yes" else "\nNotification: NO"
-                event.reply(firstLine + savedData + notifMsg)
-                    .addComponents(componentsForCommandsSet(weekData.count() == 7)).queue()
             }
-            "history" ->{
-                if(event.subcommandName=="show"){
-                    event.deferReply().queue()
-                    val history = historyLogger.getLast20Logs()
-                    var message = "The last 20 command interactions:"
-                    history.forEach{
-                        message+="\n* $it"
+
+            "schedule_table" -> {
+                event.deferReply(true).queue()
+                dataService.findWeekData(getWeekNumber(true))?.run {
+                    var message = "The schedule for this week"
+                    this.forEach {
+                        val unixTime = it.dateTime.toEpochSecond()
+                        message += "\n* <t:$unixTime:D>:\n"
+                        message += if(it.isGoingToStream) "   Stream" else "   No Stream"
+                        message += if(it.dateTime.toLocalTime() == LocalTime.parse("00:00")) "" else ", <t:$unixTime:t>"
+                        message += if(it.comment.isEmpty()) "" else ", ${it.comment}."
                     }
                     event.hook.sendMessage(message).queue()
-                }
+                } ?: event.hook.sendMessage("Couldn't find this week's schedule in database.")
+                    .queue()
             }
         }
     }
@@ -223,14 +247,15 @@ class EventsListener(
             event.guild.updateCommands().addCommands(
                 Commands.slash("schedule", "Stream schedule").addSubcommandGroups(
                     SubcommandGroupData("set", "Set stream schedule").addSubcommands(
-                        SubcommandData("this_week", "set stream schedule"),
-                        SubcommandData("next_week", "set stream schedule")
+                        SubcommandData("this_week", "set stream schedule for this week."),
+                        SubcommandData("next_week", "set stream schedule for next week.")
                     ),
                     SubcommandGroupData("history", "interactions history.").addSubcommands(
-                        SubcommandData("show","Show 'schedule set' commands interactions history.")
+                        SubcommandData("show_log", "Show 'schedule set' commands interactions history.")
                     )
-                )
+                ),
                 //.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
+                Commands.slash("schedule_table", "Get stream schedule in a text format.")
             ).queue()
         }
     }
@@ -277,6 +302,14 @@ class EventsListener(
         ).build()
     }
 
+    private fun getDayDate(): LocalDate{
+        Calendar.getInstance().let {
+            if (!isSettingThisWeek) it.add(Calendar.DAY_OF_WEEK, 7)
+            it[Calendar.DAY_OF_WEEK] = selectedDay.value
+            return LocalDate.ofYearDay(it[Calendar.YEAR] ,it[Calendar.DAY_OF_YEAR])
+        }
+    }
+
     private fun getWeekDates(): String {
         var result: String
         Calendar.getInstance().let {
@@ -289,9 +322,14 @@ class EventsListener(
         return result
     }
 
-    private fun getWeekNumber(): Int {
+    /**
+     * Gets the number of week of the year.
+     * @param isGettingThisWeek if true gets the value for current week. Pass null to use the value of [isSettingThisWeek] instead.
+     */
+    private fun getWeekNumber(isGettingThisWeek: Boolean?): Int {
+        val isGettingNextWeek = !(isGettingThisWeek ?: isSettingThisWeek)
         Calendar.getInstance().let {
-            if (!isSettingThisWeek) it.add(Calendar.DAY_OF_WEEK, 7)
+            if (isGettingNextWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             return it[Calendar.WEEK_OF_YEAR]
         }
     }
