@@ -1,4 +1,14 @@
+spring:
+  jpa:
+    database-platform : org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+        ddl-auto: validate
+  datasource:
+    url: jdbc:sqlite:db/database.db
+    driver-class-name: org.sqlite.JDBC
+
+
 my-guild:
   id: 399628142886780949
-  schedule-channel-id: 913409049431777280
-  notify-role-id: 913412135881678858
+  schedule-channel-id: 468099222424518656
+  notify-role-id: 1113123637596270695

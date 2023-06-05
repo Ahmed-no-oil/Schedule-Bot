@@ -18,8 +18,11 @@ repositories {
 dependencies {
     implementation("net.dv8tion:JDA:5.0.0-beta.9")
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.hibernate.orm:hibernate-core:6.2.3.Final")
+    implementation("org.xerial:sqlite-jdbc:3.42.0.0")
+    implementation("org.hibernate.orm:hibernate-community-dialects:6.2.3.Final")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.1")
-    implementation("org.xerial:sqlite-jdbc:3.40.1.0")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

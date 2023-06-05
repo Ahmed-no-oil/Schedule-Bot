@@ -1,7 +1,7 @@
 package com.ahmed.schedulebot.services
 
+import com.ahmed.schedulebot.entities.ScheduleEntry
 import com.ahmed.schedulebot.models.Coordinates
-import com.ahmed.schedulebot.models.DayInSchedule
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import java.awt.Color
@@ -17,7 +17,7 @@ import javax.imageio.ImageIO
 
 @Component
 class ScheduleImageBuilder() {
-    private lateinit var weekData: MutableList<DayInSchedule>
+    private lateinit var weekData: MutableList<ScheduleEntry>
     private lateinit var image: BufferedImage
     private lateinit var graphics: Graphics2D
     private lateinit var background: BufferedImage
@@ -28,13 +28,13 @@ class ScheduleImageBuilder() {
     private lateinit var fontKiwiDays: Font
     private lateinit var bubblesCoordinates: MutableList<Coordinates>
 
-    final val PADDING_BIG_BUBBLE: Coordinates = Coordinates(100, 62)
-    final val PADDING_SMALL_BUBBLE: Coordinates = Coordinates(86, 32)
-    final val CENTER_BIG_BUBBLE: Coordinates = Coordinates(269, 222)
-    final val CENTER_SMALL_BUBBLE: Coordinates = Coordinates(220, 182)
-    final val WEEK_DATES_COORDS: Coordinates = Coordinates(1570, 350)
+    private val PADDING_BIG_BUBBLE: Coordinates = Coordinates(100, 62)
+    private val PADDING_SMALL_BUBBLE: Coordinates = Coordinates(86, 32)
+    private val CENTER_BIG_BUBBLE: Coordinates = Coordinates(269, 222)
+    private val CENTER_SMALL_BUBBLE: Coordinates = Coordinates(220, 182)
+    private val WEEK_DATES_COORDS: Coordinates = Coordinates(1570, 350)
 
-    fun create(data: MutableList<DayInSchedule>): ScheduleImageBuilder {
+    fun create(data: MutableList<ScheduleEntry>): ScheduleImageBuilder {
         weekData = data
         background = getImageRes("/images/bg.png")
         bubbleBigNo = getImageRes("/images/no_bubble_frame_big.png")
@@ -80,23 +80,24 @@ class ScheduleImageBuilder() {
     }
 
     fun drawBubbles(): ScheduleImageBuilder {
+            var bubbleImage: BufferedImage
+        var bubblePoint :Coordinates
         weekData.forEach {
             //add the bubble
-            var bubbleImage: BufferedImage
-            if (it.isGoingToStream) {
-                if (it.day.value <= 3) {
-                    bubbleImage = bubbleBigYes
+            bubbleImage = if (it.isGoingToStream) {
+                if (it.day.name.value <= 3) {
+                    bubbleBigYes
                 } else {
-                    bubbleImage = bubbleSmallYes
+                    bubbleSmallYes
                 }
             } else {
-                if (it.day.value <= 3) {
-                    bubbleImage = bubbleBigNo
+                if (it.day.name.value <= 3) {
+                    bubbleBigNo
                 } else {
-                    bubbleImage = bubbleSmallNo
+                    bubbleSmallNo
                 }
             }
-            var bubblePoint = bubblesCoordinates[it.day.value - 1]
+            bubblePoint = bubblesCoordinates[it.day.name.value - 1]
             graphics.drawImage(bubbleImage, bubblePoint.x, bubblePoint.y, null)
         }
         return this
@@ -107,16 +108,16 @@ class ScheduleImageBuilder() {
         var dayName: String
         graphics.font = fontKiwiDays.deriveFont(52f)
         val fontMetrics = graphics.fontMetrics
+        var x: Int
+        var y: Int
         weekData.forEach {
-            dayName = it.day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
-            var x: Int
-            var y: Int
-            if (it.day.value <= 3) {
-                x = bubblesCoordinates[it.day.value - 1].x + PADDING_BIG_BUBBLE.x
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height
+            dayName = it.day.name.getDisplayName(TextStyle.SHORT, Locale.ENGLISH)
+            if (it.day.name.value <= 3) {
+                x = bubblesCoordinates[it.day.name.value - 1].x + PADDING_BIG_BUBBLE.x
+                y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height
             } else {
-                x = bubblesCoordinates[it.day.value - 1].x + PADDING_SMALL_BUBBLE.x
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height
+                x = bubblesCoordinates[it.day.name.value - 1].x + PADDING_SMALL_BUBBLE.x
+                y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height
             }
             graphics.drawString(dayName, x, y)
         }
@@ -128,19 +129,19 @@ class ScheduleImageBuilder() {
         var streamOrNot: String
         graphics.font = fontKiwiDays.deriveFont(Font.BOLD, 60f)
         val fontMetrics = graphics.fontMetrics
+        var x: Int
+        var y: Int
         weekData.forEach {
             streamOrNot = if (it.isGoingToStream) "STREAM" else "NO STREAM"
-            if (it.day.value == 1 && it.isGoingToStream) streamOrNot = "STREAMI"
-            var x: Int
-            var y: Int
-            if (it.day.value <= 3) {
+            if (it.day.name.value == 1 && it.isGoingToStream) streamOrNot = "STREAMI"
+            if (it.day.name.value <= 3) {
                 //adjust center
-                x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
                 //write on the second line
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 2
+                y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 2
             } else {
-                x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 2 - 20
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
+                y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 2 - 20
             }
             graphics.drawString(streamOrNot, x, y)
         }
@@ -152,18 +153,18 @@ class ScheduleImageBuilder() {
         var streamTime: String
         graphics.font = fontKiwiDays.deriveFont(Font.BOLD, 60f)
         val fontMetrics = graphics.fontMetrics
+        var x: Int
+        var y: Int
         weekData.forEach {
             streamTime = it.timeComment
-            var x: Int
-            var y: Int
-            if (it.day.value <= 3) {
+            if (it.day.name.value <= 3) {
                 //adjust center
-                x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
                 //write on the third line
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 3
+                y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 3
             } else {
-                x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
-                y = bubblesCoordinates[it.day.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 3 - 20
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
+                y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 3 - 20
             }
             graphics.drawString(streamTime, x, y)
         }
@@ -175,19 +176,19 @@ class ScheduleImageBuilder() {
         var comment: String
         graphics.font = fontKiwiDays.deriveFont(Font.PLAIN, 36f)
         val fontMetrics = graphics.fontMetrics
+        var x: Int
+        var y: Int
         weekData.forEach {
             comment = it.comment
-            var x: Int
-            var y: Int
-            if (it.day.value <= 3) {
+            if (it.day.name.value <= 3) {
                 //adjust center
-                x = bubblesCoordinates[it.day.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
                 //go up 2 lines from the bottom
-                y = bubblesCoordinates[it.day.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 2
+                y = bubblesCoordinates[it.day.name.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 2
             } else {
-                x = bubblesCoordinates[it.day.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
                 //go up 3 lines from the bottom
-                y = bubblesCoordinates[it.day.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 3
+                y = bubblesCoordinates[it.day.name.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 3
             }
             graphics.drawString(comment, x, y)
         }
