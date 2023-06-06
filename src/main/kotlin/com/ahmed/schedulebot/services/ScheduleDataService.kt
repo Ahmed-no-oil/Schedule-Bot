@@ -27,6 +27,7 @@ class ScheduleDataService(
             deleteWeekData(weekData)
             return null
         } else {
+            weekData.sortBy { it.day.name.value }
             return weekData
         }
     }

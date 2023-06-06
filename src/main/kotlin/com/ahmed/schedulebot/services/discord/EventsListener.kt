@@ -150,9 +150,9 @@ class EventsListener(
                     if (time.isEmpty())
                         time = "00:00"
                     try {
-                        entry.dateTime = LocalDateTime.of(getDayDate(), LocalTime.parse(time)).atOffset(
-                            ZoneOffset.UTC
-                        )
+                        entry.dateTime =
+                            LocalDateTime.of(getDayDate(), LocalTime.parse(time)).atZone(ZoneId.of("CET"))
+                                .toOffsetDateTime()
                     } catch (e: Exception) {
                         event.hook.sendMessage("The bot couldn't read the 3rd field. Please write it in hh:mm format")
                             .setEphemeral(true).queue()
@@ -200,7 +200,6 @@ class EventsListener(
                         weekData = dataService.findWeekData(getWeekNumber(null)) ?: mutableListOf()
                         val firstLine =
                             (if (isSettingThisWeek) "Set this week's schedule " else "Set next week's schedule ") + getWeekDates()
-                        weekData.sortBy { it.day.name.value }
                         var savedData = ""
                         weekData.forEach {
                             savedData += "\n $it"
@@ -229,10 +228,9 @@ class EventsListener(
                     var message = "The schedule for this week"
                     this.forEach {
                         val unixTime = it.dateTime.toEpochSecond()
-                        message += "\n* <t:$unixTime:D>:\n"
-                        message += if(it.isGoingToStream) "   Stream" else "   No Stream"
-                        message += if(it.dateTime.toLocalTime() == LocalTime.parse("00:00")) "" else ", <t:$unixTime:t>"
-                        message += if(it.comment.isEmpty()) "" else ", ${it.comment}."
+                        message += "\n* ${it.day.name}:\n"
+                        message += if (it.isGoingToStream) "   Stream, <t:$unixTime:t>" else "   No Stream"
+                        message += if (it.comment.isEmpty()) "" else ", ${it.comment}."
                     }
                     event.hook.sendMessage(message).queue()
                 } ?: event.hook.sendMessage("Couldn't find this week's schedule in database.")
@@ -293,7 +291,7 @@ class EventsListener(
                     .setPlaceholder("eg. 4-5 ish prob").setMaxLength(10).build()
             ), ActionRow.of(
                 TextInput.create(
-                    "streamTime_data", "Time in 24h format (for extra bot functions):", TextInputStyle.SHORT
+                    "streamTime_data", "24h format in Sweden's Timezone (CET):", TextInputStyle.SHORT
                 ).setRequired(false).setPlaceholder("eg. 18:00").setMinLength(5).setMaxLength(5).build()
             ), ActionRow.of(
                 TextInput.create("comment", "Comment:", TextInputStyle.SHORT).setMaxLength(19).setRequired(false)
@@ -302,11 +300,14 @@ class EventsListener(
         ).build()
     }
 
-    private fun getDayDate(): LocalDate{
+    private fun getDayDate(): LocalDate {
         Calendar.getInstance().let {
             if (!isSettingThisWeek) it.add(Calendar.DAY_OF_WEEK, 7)
-            it[Calendar.DAY_OF_WEEK] = selectedDay.value
-            return LocalDate.ofYearDay(it[Calendar.YEAR] ,it[Calendar.DAY_OF_YEAR])
+            var a = selectedDay.value
+            a += 1
+            if (a == 8) a = 1
+            it[Calendar.DAY_OF_WEEK] = a
+            return LocalDate.ofYearDay(it[Calendar.YEAR], it[Calendar.DAY_OF_YEAR])
         }
     }
 
