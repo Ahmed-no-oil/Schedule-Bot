@@ -233,9 +233,9 @@ class ScheduleImageBuilder() {
     }
 
     fun writeFootnote(): ScheduleImageBuilder {
-        val comment = "This is just an estimate.\n" +
-                "Things can change, so keep an eye on news channel.\n" +
-                "Command /schedule_table shows it in your time zone."
+        val comment = "THIS IS JUST AN ESTIMATE.\n" +
+                "THINGS CAN CHANGE, SO KEEP AN EYE ON NEWS CHANNEL.\n" +
+                "To see schedule in your time zone try /schedule_table"
         graphics.font = fontRobotoSlab.deriveFont(Font.BOLD, 38f)
         graphics.color = Color.decode("#eca7c5")
         var x = FOOTNOTE_COORDS.x
