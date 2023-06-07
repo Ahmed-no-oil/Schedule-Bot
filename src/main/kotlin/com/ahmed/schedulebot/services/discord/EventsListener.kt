@@ -1,12 +1,10 @@
 package com.ahmed.schedulebot.services.discord
 
 import com.ahmed.schedulebot.entities.Day
-import com.ahmed.schedulebot.entities.HistoryEntry
 import com.ahmed.schedulebot.entities.ScheduleEntry
 import com.ahmed.schedulebot.services.HistoryService
 import com.ahmed.schedulebot.services.ScheduleDataService
 import com.ahmed.schedulebot.services.ScheduleImageBuilder
-import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.events.GenericEvent
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent
@@ -15,7 +13,6 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent
 import net.dv8tion.jda.api.events.interaction.component.GenericComponentInteractionCreateEvent
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent
 import net.dv8tion.jda.api.hooks.EventListener
-import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions
 import net.dv8tion.jda.api.interactions.commands.build.Commands
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData
@@ -29,7 +26,6 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 import net.dv8tion.jda.api.interactions.modals.Modal
 import net.dv8tion.jda.api.utils.FileUpload
-import okhttp3.internal.UTC
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.text.SimpleDateFormat
@@ -94,7 +90,7 @@ class EventsListener(
                 dataService.saveWeekData(getWeekNumber(null), weekData)
                 //build schedule image
                 imageBuilder.create(weekData).drawBackground().drawWeekDates(getWeekDates()).drawBubbles()
-                    .writeDaysNames().writeStreamOrNot().writeTimes().writeComments()
+                    .writeDaysNames().writeStreamOrNot().writeTimes().writeComments().writeFootnote()
                 if (LocalDate.now().month == Month.DECEMBER && LocalDate.now().dayOfMonth >= 10) imageBuilder.drawXmasHat()
                 val imageStream = imageBuilder.build()
                 //post schedule

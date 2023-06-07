@@ -26,6 +26,7 @@ class ScheduleImageBuilder() {
     private lateinit var bubbleSmallNo: BufferedImage
     private lateinit var bubbleSmallYes: BufferedImage
     private lateinit var fontKiwiDays: Font
+    private lateinit var fontRobotoSlab: Font
     private lateinit var bubblesCoordinates: MutableList<Coordinates>
 
     private val PADDING_BIG_BUBBLE: Coordinates = Coordinates(100, 62)
@@ -33,6 +34,7 @@ class ScheduleImageBuilder() {
     private val CENTER_BIG_BUBBLE: Coordinates = Coordinates(269, 222)
     private val CENTER_SMALL_BUBBLE: Coordinates = Coordinates(220, 182)
     private val WEEK_DATES_COORDS: Coordinates = Coordinates(1570, 350)
+    private val FOOTNOTE_COORDS: Coordinates = Coordinates(0, 1280)
 
     fun create(data: MutableList<ScheduleEntry>): ScheduleImageBuilder {
         weekData = data
@@ -44,13 +46,19 @@ class ScheduleImageBuilder() {
 
         image = BufferedImage(background.width, background.height, BufferedImage.TYPE_INT_ARGB)
         graphics = image.createGraphics()
-        // add font
+        // add fonts
         try {
             fontKiwiDays = Font.createFont(
-                    Font.TRUETYPE_FONT, File(
+                Font.TRUETYPE_FONT, File(
                     this::class.java.getResource("/fonts/Kiwi_Days.ttf")?.file
-                            ?: throw IOException("couldn't find font file")
+                        ?: throw IOException("couldn't find font file")
+                )
             )
+            fontRobotoSlab = Font.createFont(
+                Font.TRUETYPE_FONT, File(
+                    this::class.java.getResource("/fonts/RobotoSlab-Light.ttf")?.file
+                        ?: throw IOException("couldn't find font file")
+                )
             )
         } catch (e: IOException) {
             println(e)
@@ -60,16 +68,16 @@ class ScheduleImageBuilder() {
 
         val mapper = ObjectMapper()
         val jsonFile = File(
-                this::class.java.getResource("/JSON.documents/bubbles.json")?.file
-                        ?: throw Exception("couldn't find JSON file")
+            this::class.java.getResource("/JSON.documents/bubbles.json")?.file
+                ?: throw Exception("couldn't find JSON file")
         )
         //Read points from the JSON file associated with the template
         bubblesCoordinates = mapper.readValue(
-                jsonFile.readText(),
-                mapper.typeFactory.constructCollectionType(
-                        MutableList::class.java,
-                        Coordinates::class.java
-                )
+            jsonFile.readText(),
+            mapper.typeFactory.constructCollectionType(
+                MutableList::class.java,
+                Coordinates::class.java
+            )
         )
         return this
     }
@@ -80,8 +88,8 @@ class ScheduleImageBuilder() {
     }
 
     fun drawBubbles(): ScheduleImageBuilder {
-            var bubbleImage: BufferedImage
-        var bubblePoint :Coordinates
+        var bubbleImage: BufferedImage
+        var bubblePoint: Coordinates
         weekData.forEach {
             //add the bubble
             bubbleImage = if (it.isGoingToStream) {
@@ -136,11 +144,15 @@ class ScheduleImageBuilder() {
             if (it.day.name.value == 1 && it.isGoingToStream) streamOrNot = "STREAMI"
             if (it.day.name.value <= 3) {
                 //adjust center
-                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(
+                    streamOrNot
+                ) / 2
                 //write on the second line
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 2
             } else {
-                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamOrNot) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(
+                    streamOrNot
+                ) / 2
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 2 - 20
             }
             graphics.drawString(streamOrNot, x, y)
@@ -159,11 +171,15 @@ class ScheduleImageBuilder() {
             streamTime = it.timeComment
             if (it.day.name.value <= 3) {
                 //adjust center
-                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(
+                    streamTime
+                ) / 2
                 //write on the third line
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 3
             } else {
-                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(streamTime) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(
+                    streamTime
+                ) / 2
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 3 - 20
             }
             graphics.drawString(streamTime, x, y)
@@ -182,11 +198,14 @@ class ScheduleImageBuilder() {
             comment = it.comment
             if (it.day.name.value <= 3) {
                 //adjust center
-                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
+                x =
+                    bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
                 //go up 2 lines from the bottom
                 y = bubblesCoordinates[it.day.name.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 2
             } else {
-                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
+                x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(
+                    comment
+                ) / 2
                 //go up 3 lines from the bottom
                 y = bubblesCoordinates[it.day.name.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 3
             }
@@ -213,6 +232,23 @@ class ScheduleImageBuilder() {
         return this
     }
 
+    fun writeFootnote(): ScheduleImageBuilder {
+        val comment = "This is just an estimate.\n" +
+                "Things can change, so keep an eye on news channel.\n" +
+                "Command /schedule_table shows it in your time zone."
+        graphics.font = fontRobotoSlab.deriveFont(Font.BOLD, 38f)
+        graphics.color = Color.decode("#eca7c5")
+        var x = FOOTNOTE_COORDS.x
+        var y = FOOTNOTE_COORDS.y
+        for (line in comment.split("\n")) {
+            y += graphics.fontMetrics.height - 4
+            //adjust center
+            x = (image.width - graphics.fontMetrics.stringWidth(line)) / 2
+            graphics.drawString(line, x, y)
+        }
+        return this
+    }
+
     fun build(): InputStream {
         val output = ByteArrayOutputStream()
         ImageIO.write(image, "png", output)
@@ -223,6 +259,6 @@ class ScheduleImageBuilder() {
 
     private fun getImageRes(name: String): BufferedImage {
         return ImageIO.read(this::class.java.getResourceAsStream(name))
-                ?: throw Exception("couldn't find image: $name")
+            ?: throw Exception("couldn't find image: $name")
     }
 }
