@@ -26,6 +26,7 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle
 import net.dv8tion.jda.api.interactions.modals.Modal
 import net.dv8tion.jda.api.utils.FileUpload
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.text.SimpleDateFormat
@@ -43,6 +44,7 @@ class EventsListener(
     @Value("\${my-guild.notify-role-id}") val notifyRoleId: String
 ) : EventListener {
 
+    private val LOGGER = LoggerFactory.getLogger(EventsListener::class.java)
     private var latestMsgId = 0L
     private var isNewSetCommandInteraction = true
     private var selectedDay = DayOfWeek.MONDAY
@@ -53,11 +55,15 @@ class EventsListener(
 
     override fun onEvent(event: GenericEvent) {
         //todo add logging
-        if (event is GuildReadyEvent) onGuildReady(event)
-        if (event is SlashCommandInteractionEvent) onSlashCommandInteraction(event)
-        if (event is ButtonInteractionEvent) onButtonInteraction(event)
-        if (event is StringSelectInteractionEvent) onStringSelectInteraction(event)
-        if (event is ModalInteractionEvent) onModalInteraction(event)
+        try {
+            if (event is GuildReadyEvent) onGuildReady(event)
+            if (event is SlashCommandInteractionEvent) onSlashCommandInteraction(event)
+            if (event is ButtonInteractionEvent) onButtonInteraction(event)
+            if (event is StringSelectInteractionEvent) onStringSelectInteraction(event)
+            if (event is ModalInteractionEvent) onModalInteraction(event)
+        } catch (e: Exception) {
+            LOGGER.error("Error happened :(", e)
+        }
     }
 
     private fun onStringSelectInteraction(event: StringSelectInteractionEvent) {
