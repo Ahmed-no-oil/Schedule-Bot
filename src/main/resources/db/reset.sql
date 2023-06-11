@@ -19,9 +19,9 @@ CREATE TABLE "weeks" (
 
 CREATE TABLE "schedule_entries" (
 	"id"	INTEGER NOT NULL UNIQUE,
-	"is_going_to_stream"	INTEGER,
+	"is_going_to_stream"	BOOLEAN,
 	"time_comment"	TEXT,
-	"date_time"	INTEGER,
+	"date_time"	timestamp,
 	"comment"	TEXT,
 	"day_id"	INTEGER NOT NULL ,
 	"week_id"	INTEGER NOT NULL ,
@@ -33,7 +33,7 @@ CREATE TABLE "schedule_entries" (
 
 CREATE TABLE "history_entries" (
 	"id"	INTEGER NOT NULL UNIQUE,
-	"timestamp"	INTEGER,
+	"timestamp"	timestamp,
 	"user_name"	TEXT,
 	"interaction"	TEXT,
 	PRIMARY KEY("id" AUTOINCREMENT)
