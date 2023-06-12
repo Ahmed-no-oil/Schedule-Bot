@@ -253,8 +253,8 @@ class EventsListener(
                     SubcommandGroupData("history", "interactions history.").addSubcommands(
                         SubcommandData("show_log", "Show 'schedule set' commands interactions history.")
                     )
-                ),
-                //.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
+                )//.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
+                ,
                 Commands.slash("schedule_table", "Get stream schedule in a text format.")
             ).queue()
         }

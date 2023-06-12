@@ -27,7 +27,8 @@ class ScheduleImageBuilder() {
     private lateinit var bubbleSmallYes: BufferedImage
     private lateinit var fontKiwiDays: Font
     private lateinit var fontRobotoSlab: Font
-    private lateinit var bubblesCoordinates: MutableList<Coordinates>
+    private lateinit var bubblesCoordinates: Array<Coordinates>
+
 
     private val PADDING_BIG_BUBBLE: Coordinates = Coordinates(100, 62)
     private val PADDING_SMALL_BUBBLE: Coordinates = Coordinates(86, 32)
@@ -66,18 +67,14 @@ class ScheduleImageBuilder() {
             println(e)
         }
 
-        val mapper = ObjectMapper()
-        val jsonFile = File(
-            this::class.java.getResource("/JSON.documents/bubbles.json")?.file
-                ?: throw Exception("couldn't find JSON file")
-        )
-        //Read points from the JSON file associated with the template
-        bubblesCoordinates = mapper.readValue(
-            jsonFile.readText(),
-            mapper.typeFactory.constructCollectionType(
-                MutableList::class.java,
-                Coordinates::class.java
-            )
+        bubblesCoordinates = arrayOf(
+            Coordinates(147, 454),
+            Coordinates(723, 454),
+            Coordinates(1293, 454),
+            Coordinates(52, 898),
+            Coordinates(530, 898),
+            Coordinates(1014, 898),
+            Coordinates(1488, 898)
         )
         return this
     }
