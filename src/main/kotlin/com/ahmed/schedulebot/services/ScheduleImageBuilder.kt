@@ -50,14 +50,13 @@ class ScheduleImageBuilder() {
         // add fonts
         try {
             fontKiwiDays = Font.createFont(
-                Font.TRUETYPE_FONT, File(
-                    this::class.java.getResource("/fonts/Kiwi_Days.ttf")?.file
-                        ?: throw IOException("couldn't find font file")
+                Font.TRUETYPE_FONT, (
+                    this::class.java.getResourceAsStream("/fonts/Kiwi_Days.ttf")
                 )
             )
             fontRobotoSlab = Font.createFont(
-                Font.TRUETYPE_FONT, File(
-                    this::class.java.getResource("/fonts/RobotoSlab-Light.ttf")?.file
+                Font.TRUETYPE_FONT, (
+                    this::class.java.getResourceAsStream("/fonts/RobotoSlab-Light.ttf")
                         ?: throw IOException("couldn't find font file")
                 )
             )
