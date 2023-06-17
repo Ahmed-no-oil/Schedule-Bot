@@ -2,7 +2,6 @@ package com.ahmed.schedulebot.services
 
 import com.ahmed.schedulebot.entities.ScheduleEntry
 import com.ahmed.schedulebot.models.Coordinates
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Component
 import java.awt.Color
 import java.awt.Font
@@ -10,7 +9,10 @@ import java.awt.FontFormatException
 import java.awt.Graphics2D
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.IOException
+import java.io.InputStream
 import java.time.format.TextStyle
 import java.util.*
 import javax.imageio.ImageIO
@@ -50,15 +52,15 @@ class ScheduleImageBuilder() {
         // add fonts
         try {
             fontKiwiDays = Font.createFont(
-                Font.TRUETYPE_FONT, (
+                    Font.TRUETYPE_FONT, (
                     this::class.java.getResourceAsStream("/fonts/Kiwi_Days.ttf")
-                )
+                    )
             )
             fontRobotoSlab = Font.createFont(
-                Font.TRUETYPE_FONT, (
+                    Font.TRUETYPE_FONT, (
                     this::class.java.getResourceAsStream("/fonts/RobotoSlab-Light.ttf")
-                        ?: throw IOException("couldn't find font file")
-                )
+                            ?: throw IOException("couldn't find font file")
+                    )
             )
         } catch (e: IOException) {
             println(e)
@@ -67,13 +69,13 @@ class ScheduleImageBuilder() {
         }
 
         bubblesCoordinates = arrayOf(
-            Coordinates(147, 454),
-            Coordinates(723, 454),
-            Coordinates(1293, 454),
-            Coordinates(52, 898),
-            Coordinates(530, 898),
-            Coordinates(1014, 898),
-            Coordinates(1488, 898)
+                Coordinates(147, 454),
+                Coordinates(723, 454),
+                Coordinates(1293, 454),
+                Coordinates(52, 898),
+                Coordinates(530, 898),
+                Coordinates(1014, 898),
+                Coordinates(1488, 898)
         )
         return this
     }
@@ -141,13 +143,13 @@ class ScheduleImageBuilder() {
             if (it.day.name.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(
-                    streamOrNot
+                        streamOrNot
                 ) / 2
                 //write on the second line
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 2
             } else {
                 x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(
-                    streamOrNot
+                        streamOrNot
                 ) / 2
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 2 - 20
             }
@@ -168,13 +170,13 @@ class ScheduleImageBuilder() {
             if (it.day.name.value <= 3) {
                 //adjust center
                 x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(
-                    streamTime
+                        streamTime
                 ) / 2
                 //write on the third line
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_BIG_BUBBLE.y + fontMetrics.height * 3
             } else {
                 x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(
-                    streamTime
+                        streamTime
                 ) / 2
                 y = bubblesCoordinates[it.day.name.value - 1].y + PADDING_SMALL_BUBBLE.y + fontMetrics.height * 3 - 20
             }
@@ -195,12 +197,12 @@ class ScheduleImageBuilder() {
             if (it.day.name.value <= 3) {
                 //adjust center
                 x =
-                    bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
+                        bubblesCoordinates[it.day.name.value - 1].x + CENTER_BIG_BUBBLE.x - fontMetrics.stringWidth(comment) / 2
                 //go up 2 lines from the bottom
                 y = bubblesCoordinates[it.day.name.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 2
             } else {
                 x = bubblesCoordinates[it.day.name.value - 1].x + CENTER_SMALL_BUBBLE.x - fontMetrics.stringWidth(
-                    comment
+                        comment
                 ) / 2
                 //go up 3 lines from the bottom
                 y = bubblesCoordinates[it.day.name.value - 1].y + CENTER_BIG_BUBBLE.y * 2 - fontMetrics.height * 3
@@ -255,6 +257,6 @@ class ScheduleImageBuilder() {
 
     private fun getImageRes(name: String): BufferedImage {
         return ImageIO.read(this::class.java.getResourceAsStream(name))
-            ?: throw Exception("couldn't find image: $name")
+                ?: throw Exception("couldn't find image: $name")
     }
 }

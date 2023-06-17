@@ -1,12 +1,11 @@
 package com.ahmed.schedulebot.entities
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 
 @Entity
 @Table(name = "schedule_entries")
-class ScheduleEntry(){
+class ScheduleEntry() {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Int = 0
@@ -24,6 +23,6 @@ class ScheduleEntry(){
     lateinit var week: Week
 
     override fun toString(): String {
-        return "${day.name.name}: " + (if(isGoingToStream) "STREAM, " else "NO STREAM, ") + "$timeComment, $comment"
+        return "${day.name.name}: " + (if (isGoingToStream) "STREAM, " else "NO STREAM, ") + "$timeComment, $comment"
     }
 }

@@ -5,16 +5,17 @@ import java.time.DayOfWeek
 
 @Entity
 @Table(name = "days")
-class Day(){
+class Day() {
     @Id
     var id: Int = 0
+
     @Enumerated(EnumType.STRING)
     var name: DayOfWeek = DayOfWeek.THURSDAY
 
     @OneToMany(mappedBy = "day")
-    lateinit var scheduleEntries : MutableList<ScheduleEntry>
+    lateinit var scheduleEntries: MutableList<ScheduleEntry>
 
-    constructor(id: Int ,dayOfWeek: DayOfWeek): this(){
+    constructor(id: Int, dayOfWeek: DayOfWeek) : this() {
         this.id = id
         name = dayOfWeek
     }

@@ -13,9 +13,9 @@ import kotlin.jvm.optionals.getOrElse
 
 @Service
 class ScheduleDataService(
-    val scheduleRepo: ScheduleEntryRepository,
-    val dayRepo: DayRepository,
-    val weekRepo: WeekRepository
+        val scheduleRepo: ScheduleEntryRepository,
+        val dayRepo: DayRepository,
+        val weekRepo: WeekRepository
 ) {
 
     fun findWeekData(weekNumber: Int): MutableList<ScheduleEntry>? {
@@ -42,8 +42,8 @@ class ScheduleDataService(
         }
     }
 
-    fun deleteScheduleEntry(entry: ScheduleEntry){
-        if(scheduleRepo.existsById(entry.id))
+    fun deleteScheduleEntry(entry: ScheduleEntry) {
+        if (scheduleRepo.existsById(entry.id))
             scheduleRepo.delete(entry)
     }
 

@@ -2,7 +2,6 @@ package com.ahmed.schedulebot.controllers
 
 import com.ahmed.schedulebot.models.ScheduleDay
 import com.ahmed.schedulebot.services.ScheduleDataService
-import com.ahmed.schedulebot.services.discord.EventsListener
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
@@ -25,8 +24,9 @@ class ScheduleController(val dataService: ScheduleDataService) {
                 weekNumber = it[Calendar.WEEK_OF_YEAR]
             }
             val responseData =
-                dataService.findWeekData(weekNumber)?.map { ScheduleDay().of(it) } ?: return ResponseEntity.notFound()
-                    .build()
+                    dataService.findWeekData(weekNumber)?.map { ScheduleDay().of(it) }
+                            ?: return ResponseEntity.notFound()
+                                    .build()
             return ResponseEntity.ok(responseData)
         } catch (e: Exception) {
             LOGGER.error("Controller error.", e)

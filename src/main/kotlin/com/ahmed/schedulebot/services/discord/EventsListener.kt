@@ -36,12 +36,12 @@ import java.util.*
 
 @Component
 class EventsListener(
-    val imageBuilder: ScheduleImageBuilder,
-    val dataService: ScheduleDataService,
-    val historyLogger: HistoryService,
-    @Value("\${my-guild.id}") val myGuildId: String,
-    @Value("\${my-guild.schedule-channel-id}") val scheduleChannelId: String,
-    @Value("\${my-guild.notify-role-id}") val notifyRoleId: String
+        val imageBuilder: ScheduleImageBuilder,
+        val dataService: ScheduleDataService,
+        val historyLogger: HistoryService,
+        @Value("\${my-guild.id}") val myGuildId: String,
+        @Value("\${my-guild.schedule-channel-id}") val scheduleChannelId: String,
+        @Value("\${my-guild.notify-role-id}") val notifyRoleId: String
 ) : EventListener {
 
     private val LOGGER = LoggerFactory.getLogger(EventsListener::class.java)
@@ -96,39 +96,39 @@ class EventsListener(
                 dataService.saveWeekData(getWeekNumber(null), weekData)
                 //build schedule image
                 imageBuilder.create(weekData).drawBackground().drawWeekDates(getWeekDates()).drawBubbles()
-                    .writeDaysNames().writeStreamOrNot().writeTimes().writeComments().writeFootnote()
+                        .writeDaysNames().writeStreamOrNot().writeTimes().writeComments().writeFootnote()
                 if (LocalDate.now().month == Month.DECEMBER && LocalDate.now().dayOfMonth >= 10) imageBuilder.drawXmasHat()
                 val imageStream = imageBuilder.build()
                 //post schedule
                 val msgContent = if (shouldNotify) "<@&$notifyRoleId> $publishingMessage" else publishingMessage
                 event.guild!!.getTextChannelById(scheduleChannelId)
-                    ?.sendFiles(FileUpload.fromData(imageStream, "schedule " + LocalDate.now().toString() + ".png"))
-                    ?.setContent(msgContent)?.queue()
-                    ?: run {
-                        event.guild!!.getNewsChannelById(scheduleChannelId)?.sendFiles(
-                            FileUpload.fromData(imageStream, "schedule" + LocalDate.now().toString() + ".png")
-                        )?.setContent(msgContent)?.queue()
-                            ?: run {
-                                event.hook.editOriginal("error: couldn't find the channel $scheduleChannelId")
-                                    .setComponents()
-                                    .queue()
-                                return
-                            }
-                    }
+                        ?.sendFiles(FileUpload.fromData(imageStream, "schedule " + LocalDate.now().toString() + ".png"))
+                        ?.setContent(msgContent)?.queue()
+                        ?: run {
+                            event.guild!!.getNewsChannelById(scheduleChannelId)?.sendFiles(
+                                    FileUpload.fromData(imageStream, "schedule" + LocalDate.now().toString() + ".png")
+                            )?.setContent(msgContent)?.queue()
+                                    ?: run {
+                                        event.hook.editOriginal("error: couldn't find the channel $scheduleChannelId")
+                                                .setComponents()
+                                                .queue()
+                                        return
+                                    }
+                        }
                 historyLogger.log("published schedule", event.user.name)
                 event.hook.editOriginal(event.message.contentRaw + "\nSchedule was published").setComponents().queue()
             }
 
             "notifMsgBtn" -> {
                 event.replyModal(
-                    Modal.create("notifMsgModal", "Notification & Message").addActionRow(
-                        TextInput.create(
-                            "notifyOrNot", "Mention notification role?", TextInputStyle.SHORT
-                        ).setMaxLength(3).setPlaceholder("yes or no").build()
-                    ).addActionRow(
-                        TextInput.create("msgInput", "Message with the post:", TextInputStyle.PARAGRAPH)
-                            .setRequired(false).build()
-                    ).build()
+                        Modal.create("notifMsgModal", "Notification & Message").addActionRow(
+                                TextInput.create(
+                                        "notifyOrNot", "Mention notification role?", TextInputStyle.SHORT
+                                ).setMaxLength(3).setPlaceholder("yes or no").build()
+                        ).addActionRow(
+                                TextInput.create("msgInput", "Message with the post:", TextInputStyle.PARAGRAPH)
+                                        .setRequired(false).build()
+                        ).build()
                 ).queue()
             }
         }
@@ -138,7 +138,7 @@ class EventsListener(
         event.deferEdit().queue()
         if (event.message == null) {
             event.hook.sendMessage("error: can't find the command message. if no one has deleted it, contact developer.")
-                .setEphemeral(true).queue()
+                    .setEphemeral(true).queue()
             return
         }
         when (event.modalId) {
@@ -153,11 +153,11 @@ class EventsListener(
                         time = "00:00"
                     try {
                         entry.dateTime =
-                            LocalDateTime.of(getDayDate(), LocalTime.parse(time)).atZone(ZoneId.of("CET"))
-                                .toOffsetDateTime()
+                                LocalDateTime.of(getDayDate(), LocalTime.parse(time)).atZone(ZoneId.of("CET"))
+                                        .toOffsetDateTime()
                     } catch (e: Exception) {
                         event.hook.sendMessage("The bot couldn't read the 3rd field. Please write it in hh:mm format")
-                            .setEphemeral(true).queue()
+                                .setEphemeral(true).queue()
                         return
                     }
                 }
@@ -179,7 +179,7 @@ class EventsListener(
         }
 
         val firstLine =
-            if (event.message!!.contentRaw.contains("\n")) event.message!!.contentRaw.substringBefore("\n") else event.message!!.contentRaw
+                if (event.message!!.contentRaw.contains("\n")) event.message!!.contentRaw.substringBefore("\n") else event.message!!.contentRaw
         var savedData = ""
         weekData.forEach {
             savedData += "\n$it"
@@ -187,7 +187,7 @@ class EventsListener(
         var notifMsg = if (shouldNotify) "\nNotification: Yes" else "\nNotification: NO"
         notifMsg += if (publishingMessage.isNotEmpty()) "\nMessage :$publishingMessage" else "\nMessage: $publishingMessage"
         event.hook.editOriginal(firstLine + savedData + notifMsg)
-            .setComponents(componentsForCommandsSet(weekData.count() == 7)).queue()
+                .setComponents(componentsForCommandsSet(weekData.count() == 7)).queue()
     }
 
     private fun onSlashCommandInteraction(event: SlashCommandInteractionEvent) {
@@ -201,14 +201,14 @@ class EventsListener(
                         //try to get data from database
                         weekData = dataService.findWeekData(getWeekNumber(null)) ?: mutableListOf()
                         val firstLine =
-                            (if (isSettingThisWeek) "Set this week's schedule " else "Set next week's schedule ") + getWeekDates()
+                                (if (isSettingThisWeek) "Set this week's schedule " else "Set next week's schedule ") + getWeekDates()
                         var savedData = ""
                         weekData.forEach {
                             savedData += "\n $it"
                         }
                         val notifMsg = if (shouldNotify) "\nNotification: Yes" else "\nNotification: NO"
                         event.hook.sendMessage(firstLine + savedData + notifMsg)
-                            .addComponents(componentsForCommandsSet(weekData.count() == 7)).queue()
+                                .addComponents(componentsForCommandsSet(weekData.count() == 7)).queue()
                     }
 
                     "history" -> {
@@ -236,7 +236,7 @@ class EventsListener(
                     }
                     event.hook.sendMessage(message).queue()
                 } ?: event.hook.sendMessage("Couldn't find this week's schedule in database.")
-                    .queue()
+                        .queue()
             }
         }
     }
@@ -245,17 +245,17 @@ class EventsListener(
         println("Guild ${event.guild.id} is ready")
         if (event.guild.id == myGuildId) {
             event.guild.updateCommands().addCommands(
-                Commands.slash("schedule", "Stream schedule").addSubcommandGroups(
-                    SubcommandGroupData("set", "Set stream schedule").addSubcommands(
-                        SubcommandData("this_week", "set stream schedule for this week."),
-                        SubcommandData("next_week", "set stream schedule for next week.")
-                    ),
-                    SubcommandGroupData("history", "interactions history.").addSubcommands(
-                        SubcommandData("show_log", "Show 'schedule set' commands interactions history.")
-                    )
-                )//.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
-                ,
-                Commands.slash("schedule_table", "Get stream schedule in a text format.")
+                    Commands.slash("schedule", "Stream schedule").addSubcommandGroups(
+                            SubcommandGroupData("set", "Set stream schedule").addSubcommands(
+                                    SubcommandData("this_week", "set stream schedule for this week."),
+                                    SubcommandData("next_week", "set stream schedule for next week.")
+                            ),
+                            SubcommandGroupData("history", "interactions history.").addSubcommands(
+                                    SubcommandData("show_log", "Show 'schedule set' commands interactions history.")
+                            )
+                    )//.setDefaultPermissions(DefaultMemberPermissions.enabledFor(Permission.MANAGE_CHANNEL))
+                    ,
+                    Commands.slash("schedule_table", "Get stream schedule in a text format.")
             ).queue()
         }
     }
@@ -264,16 +264,16 @@ class EventsListener(
         val weekOptions = mutableListOf<SelectOption>()
         DayOfWeek.values().forEach {
             weekOptions.add(
-                SelectOption.of(
-                    it.getDisplayName(TextStyle.FULL, Locale.ENGLISH), it.value.toString()
-                )
+                    SelectOption.of(
+                            it.getDisplayName(TextStyle.FULL, Locale.ENGLISH), it.value.toString()
+                    )
             )
         }
         var publishBtn = Button.success("publishBtn", "Publish")
         if (!publishBtnEnabled) publishBtn = publishBtn.asDisabled()
         val dayInput: ItemComponent =
-            StringSelectMenu.create("dayInput").setMaxValues(1).setPlaceholder("Select a day to set")
-                .addOptions(weekOptions).build()
+                StringSelectMenu.create("dayInput").setMaxValues(1).setPlaceholder("Select a day to set")
+                        .addOptions(weekOptions).build()
         val actionRows = mutableListOf<LayoutComponent>()
 
         actionRows.add(ActionRow.of(dayInput))
@@ -285,20 +285,20 @@ class EventsListener(
 
     private fun dayModal(): Modal {
         return Modal.create("dayModal", selectedDay.name).addComponents(
-            ActionRow.of(
-                TextInput.create("streamOrNot", "Streaming that day?:", TextInputStyle.SHORT).setMinLength(2)
-                    .setMaxLength(3).build()
-            ), ActionRow.of(
+                ActionRow.of(
+                        TextInput.create("streamOrNot", "Streaming that day?:", TextInputStyle.SHORT).setMinLength(2)
+                                .setMaxLength(3).build()
+                ), ActionRow.of(
                 TextInput.create("streamTime", "If yes, when starts:", TextInputStyle.SHORT).setRequired(false)
-                    .setPlaceholder("eg. 4-5 ish prob").setMaxLength(10).build()
-            ), ActionRow.of(
+                        .setPlaceholder("eg. 4-5 ish prob").setMaxLength(10).build()
+        ), ActionRow.of(
                 TextInput.create(
-                    "streamTime_data", "24h format in Sweden's Timezone (CET):", TextInputStyle.SHORT
+                        "streamTime_data", "24h format in Sweden's Timezone (CET):", TextInputStyle.SHORT
                 ).setRequired(false).setPlaceholder("eg. 18:00").setMinLength(5).setMaxLength(5).build()
-            ), ActionRow.of(
+        ), ActionRow.of(
                 TextInput.create("comment", "Comment:", TextInputStyle.SHORT).setMaxLength(19).setRequired(false)
-                    .build()
-            )
+                        .build()
+        )
         ).build()
     }
 
@@ -341,7 +341,7 @@ class EventsListener(
         if (!isNewSetCommandInteraction) {
             if (event.message.idLong != latestMsgId) {
                 event.editMessage("Another 'schedule set' interaction is opened. Therefore this one is canceled.")
-                    .setComponents().queue()
+                        .setComponents().queue()
                 return false
             }
             latestMsgId = event.message.idLong
