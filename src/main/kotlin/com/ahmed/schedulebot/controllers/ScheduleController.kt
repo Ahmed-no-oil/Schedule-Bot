@@ -4,6 +4,7 @@ import com.ahmed.schedulebot.models.ScheduleDay
 import com.ahmed.schedulebot.services.ScheduleDataService
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
@@ -12,6 +13,7 @@ import java.util.*
 
 @RestController
 @RequestMapping("/api/schedule")
+@CrossOrigin(origins = ["http://localhost:3000/","https://elina.chat"])
 class ScheduleController(val dataService: ScheduleDataService) {
     private val LOGGER = LoggerFactory.getLogger(ScheduleController::class.java)
 
