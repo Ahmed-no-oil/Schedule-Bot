@@ -50,8 +50,8 @@ class EventsListener(
     private var selectedDay = DayOfWeek.MONDAY
     private var isSettingThisWeek = false
     private var weekData = mutableListOf<ScheduleEntry>()
-    private var shouldNotify = true
-    private var publishingMessage = "Schedule for the week"
+    private var shouldNotify = false
+    private var publishingMessage = ""
 
     override fun onEvent(event: GenericEvent) {
         //todo add logging
@@ -93,7 +93,7 @@ class EventsListener(
                     event.hook.editOriginal("Data in this command was lost. Start a new one").setComponents().queue()
                     return
                 }
-                dataService.saveWeekData(getWeekNumber(null), weekData)
+                dataService.saveWeekData(getYear(!isSettingThisWeek),getWeekNumber(!isSettingThisWeek), weekData)
                 //build schedule image
                 imageBuilder.create(weekData).drawBackground().drawWeekDates(getWeekDates()).drawBubbles()
                         .writeDaysNames().writeStreamOrNot().writeTimes().writeComments().writeFootnote()
@@ -199,7 +199,7 @@ class EventsListener(
                         isNewSetCommandInteraction = true
                         isSettingThisWeek = event.subcommandName.equals("this_week")
                         //try to get data from database
-                        weekData = dataService.findWeekData(getWeekNumber(null)) ?: mutableListOf()
+                        weekData = dataService.findWeekData(getYear(!isSettingThisWeek),getWeekNumber(!isSettingThisWeek)) ?: mutableListOf()
                         val firstLine =
                                 (if (isSettingThisWeek) "Set this week's schedule " else "Set next week's schedule ") + getWeekDates()
                         var savedData = ""
@@ -226,7 +226,7 @@ class EventsListener(
 
             "schedule_table" -> {
                 event.deferReply(true).queue()
-                dataService.findWeekData(getWeekNumber(true))?.run {
+                dataService.findWeekData(getYear(false),getWeekNumber(false))?.run {
                     var message = "The schedule for this week"
                     this.forEach {
                         val unixTime = it.dateTime.toEpochSecond()
@@ -312,7 +312,15 @@ class EventsListener(
             return LocalDate.ofYearDay(it[Calendar.YEAR], it[Calendar.DAY_OF_YEAR])
         }
     }
-
+    private fun getYear(isGettingNextWeek: Boolean): Int {
+        Calendar.getInstance().let {
+            if (isGettingNextWeek) it.add(Calendar.DAY_OF_WEEK, 7)
+            //The week containing the first Thursday of January is the first week of the year, in ISO system.
+            //that's why it's better to get the year(of the week) from a Thursday (value 5 in Calendar.DAY_OF_WEEK)
+            it[Calendar.DAY_OF_WEEK] = 5
+            return it[Calendar.YEAR]
+        }
+    }
     private fun getWeekDates(): String {
         var result: String
         Calendar.getInstance().let {
@@ -325,17 +333,14 @@ class EventsListener(
         return result
     }
 
-    /**
-     * Gets the number of week of the year.
-     * @param isGettingThisWeek if true gets the value for current week. Pass null to use the value of [isSettingThisWeek] instead.
-     */
-    private fun getWeekNumber(isGettingThisWeek: Boolean?): Int {
-        val isGettingNextWeek = !(isGettingThisWeek ?: isSettingThisWeek)
+    private fun getWeekNumber(isGettingNextWeek: Boolean): Int {
         Calendar.getInstance().let {
             if (isGettingNextWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             return it[Calendar.WEEK_OF_YEAR]
         }
     }
+
+
 
     private fun checkIfLatestMessage(event: GenericComponentInteractionCreateEvent): Boolean {
         if (!isNewSetCommandInteraction) {

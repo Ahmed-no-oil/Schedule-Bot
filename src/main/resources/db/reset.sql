@@ -15,6 +15,7 @@ CREATE TABLE "weeks"
 (
     "id"          INTEGER NOT NULL UNIQUE,
     "week_number" INTEGER,
+    "year"        INTEGER,
     PRIMARY KEY ("id" AUTOINCREMENT)
 );
 

@@ -13,29 +13,22 @@ import kotlin.jvm.optionals.getOrElse
 
 @Service
 class ScheduleDataService(
-        val scheduleRepo: ScheduleEntryRepository,
-        val dayRepo: DayRepository,
-        val weekRepo: WeekRepository
+    val scheduleRepo: ScheduleEntryRepository,
+    val dayRepo: DayRepository,
+    val weekRepo: WeekRepository
 ) {
 
-    fun findWeekData(weekNumber: Int): MutableList<ScheduleEntry>? {
-        val week = weekRepo.findByWeekNumber(weekNumber) ?: return null
-        val weekData = scheduleRepo.findByWeek(week)
-        if (weekData.isNullOrEmpty()) return null
-        //delete week's data if it's from last year
-        if (weekData.first().dateTime.year != LocalDateTime.now().year) {
-            deleteWeekData(weekData)
-            return null
-        } else {
-            weekData.sortBy { it.day.name.value }
-            return weekData
-        }
+    fun findWeekData(year:Int, weekNumber: Int): MutableList<ScheduleEntry>? {
+        val week = weekRepo.findByYearAndWeekNumber(year,weekNumber) ?: return null
+        val weekData = scheduleRepo.findByWeek(week) ?: return null
+        weekData.sortBy { it.day.name.value }
+        return weekData
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    fun saveWeekData(weekOfYear: Int, data: MutableCollection<ScheduleEntry>) {
+    fun saveWeekData(year:Int ,weekOfYear: Int, data: MutableCollection<ScheduleEntry>) {
         dayRepo.findById(7).getOrElse { populateDaysTable() }
-        val week = weekRepo.findByWeekNumber(weekOfYear) ?: weekRepo.save(Week(weekOfYear))
+        val week = weekRepo.findByYearAndWeekNumber(year,weekOfYear) ?: weekRepo.save(Week(year, weekOfYear))
         for (i in 0..6) {
             data.elementAt(i).week = week
             scheduleRepo.save(data.elementAt(i))
@@ -45,10 +38,6 @@ class ScheduleDataService(
     fun deleteScheduleEntry(entry: ScheduleEntry) {
         if (scheduleRepo.existsById(entry.id))
             scheduleRepo.delete(entry)
-    }
-
-    private fun deleteWeekData(data: MutableCollection<ScheduleEntry>) {
-        scheduleRepo.deleteAll(data)
     }
 
     private fun populateDaysTable() {

@@ -21,12 +21,15 @@ class ScheduleController(val dataService: ScheduleDataService) {
     @GetMapping("/get_this_week_data")
     fun getThisWeekData(): ResponseEntity<List<ScheduleDay>> {
         val weekNumber: Int
+        val year: Int
         try {
             Calendar.getInstance().let {
                 weekNumber = it[Calendar.WEEK_OF_YEAR]
+                it[Calendar.DAY_OF_WEEK] = 5
+                year = it[Calendar.YEAR]
             }
             val responseData =
-                    dataService.findWeekData(weekNumber)?.map { ScheduleDay().of(it) }
+                    dataService.findWeekData(year,weekNumber)?.map { ScheduleDay().of(it) }
                             ?: return ResponseEntity.notFound()
                                     .build()
             return ResponseEntity.ok(responseData)

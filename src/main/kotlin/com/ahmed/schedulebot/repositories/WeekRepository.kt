@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface WeekRepository : CrudRepository<Week, Int> {
-    fun findByWeekNumber(weekNumber: Int): Week?
+    fun findByYearAndWeekNumber(year: Int, weekNumber: Int): Week?
 }
