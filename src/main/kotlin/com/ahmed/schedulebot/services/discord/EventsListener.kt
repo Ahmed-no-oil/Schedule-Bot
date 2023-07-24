@@ -153,7 +153,7 @@ class EventsListener(
                         time = "00:00"
                     try {
                         entry.dateTime =
-                                LocalDateTime.of(getDayDate(), LocalTime.parse(time)).atZone(ZoneId.of("CET"))
+                                LocalDateTime.of(getSelectedDayDate(), LocalTime.parse(time)).atZone(ZoneId.of("CET"))
                                         .toOffsetDateTime()
                     } catch (e: Exception) {
                         event.hook.sendMessage("The bot couldn't read the 3rd field. Please write it in hh:mm format")
@@ -302,10 +302,12 @@ class EventsListener(
         ).build()
     }
 
-    private fun getDayDate(): LocalDate {
+    private fun getSelectedDayDate(): LocalDate {
         Calendar.getInstance().let {
             if (!isSettingThisWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             var a = selectedDay.value
+            //In java.time.DayOfWeek the value 1 is Monday, but in java.util.Calendar.DayOfWeek it's Sunday.
+            //Shift the selectedDay value by +1 .
             a += 1
             if (a == 8) a = 1
             it[Calendar.DAY_OF_WEEK] = a
@@ -324,6 +326,7 @@ class EventsListener(
     private fun getWeekDates(): String {
         var result: String
         Calendar.getInstance().let {
+            it.firstDayOfWeek = Calendar.MONDAY
             if (!isSettingThisWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             it[Calendar.DAY_OF_WEEK] = it.firstDayOfWeek
             result = it[Calendar.DAY_OF_MONTH].toString()

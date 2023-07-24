@@ -1,7 +1,8 @@
+package com.ahmed.schedulebot.services
+
 import com.ahmed.schedulebot.entities.Week
 import com.ahmed.schedulebot.repositories.ScheduleEntryRepository
 import com.ahmed.schedulebot.repositories.WeekRepository
-import com.ahmed.schedulebot.services.ScheduleImageBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
@@ -17,20 +18,19 @@ class ImageService(val scheduleEntryRepository: ScheduleEntryRepository,
 
     private val LOGGER: Logger = LoggerFactory.getLogger(ImageService::class.java)
 
-    @Cacheable(value = ["schedule-image"], unless = "#result.size == 0")
+    @Cacheable(value = ["schedule-image"], unless = "#result.length == 0")
     fun getImage(year: Int, week: Int): ByteArray {
-        val weekObject = weekRepository.findByWeekNumber(week) ?: weekRepository.save(Week(week))
+        val weekObject = weekRepository.findByYearAndWeekNumber(year, week) ?: weekRepository.save(Week(year, week))
         val scheduleEntries = scheduleEntryRepository.findByWeek(weekObject) ?: mutableListOf()
         val imageStream = scheduleImageBuilder.create(scheduleEntries)
-                .drawBackground()
-                .drawWeekDates(getWeekDates())
-                .drawBubbles()
-                .writeDaysNames()
-                .writeStreamOrNot()
-                .writeTimes()
-                .writeComments()
-                .writeFootnote()
-                .build()
+            .drawBackground()
+            .drawWeekDates(getWeekDates(year, week))
+            .drawBubbles()
+            .writeDaysNames()
+            .writeStreamOrNot()
+            .writeTimes()
+            .writeComments()
+            .build()
 
         return imageStream.readAllBytes() ?: byteArrayOf()
     }
@@ -40,9 +40,12 @@ class ImageService(val scheduleEntryRepository: ScheduleEntryRepository,
         LOGGER.info("cleared image cache")
     }
 
-    private fun getWeekDates(): String {
+    private fun getWeekDates(year: Int, week: Int): String {
         var result: String
         Calendar.getInstance().let {
+            it.firstDayOfWeek = Calendar.MONDAY
+            it[Calendar.YEAR] = year
+            it[Calendar.WEEK_OF_YEAR] = week
             it[Calendar.DAY_OF_WEEK] = it.firstDayOfWeek
             result = it[Calendar.DAY_OF_MONTH].toString()
             it.add(Calendar.DAY_OF_WEEK, 6)
