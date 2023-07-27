@@ -303,7 +303,7 @@ class EventsListener(
     }
 
     private fun getSelectedDayDate(): LocalDate {
-        Calendar.getInstance().let {
+        Calendar.getInstance(Locale("sv","SE")).let {
             if (!isSettingThisWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             var a = selectedDay.value
             //In java.time.DayOfWeek the value 1 is Monday, but in java.util.Calendar.DayOfWeek it's Sunday.
@@ -315,7 +315,7 @@ class EventsListener(
         }
     }
     private fun getYear(isGettingNextWeek: Boolean): Int {
-        Calendar.getInstance().let {
+        Calendar.getInstance(Locale("sv","SE")).let {
             if (isGettingNextWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             //The week containing the first Thursday of January is the first week of the year, in ISO system.
             //that's why it's better to get the year(of the week) from a Thursday (value 5 in Calendar.DAY_OF_WEEK)
@@ -325,8 +325,7 @@ class EventsListener(
     }
     private fun getWeekDates(): String {
         var result: String
-        Calendar.getInstance().let {
-            it.firstDayOfWeek = Calendar.MONDAY
+        Calendar.getInstance(Locale("sv","SE")).let {
             if (!isSettingThisWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             it[Calendar.DAY_OF_WEEK] = it.firstDayOfWeek
             result = it[Calendar.DAY_OF_MONTH].toString()
@@ -337,7 +336,7 @@ class EventsListener(
     }
 
     private fun getWeekNumber(isGettingNextWeek: Boolean): Int {
-        Calendar.getInstance().let {
+        Calendar.getInstance(Locale("sv","SE")).let {
             if (isGettingNextWeek) it.add(Calendar.DAY_OF_WEEK, 7)
             return it[Calendar.WEEK_OF_YEAR]
         }

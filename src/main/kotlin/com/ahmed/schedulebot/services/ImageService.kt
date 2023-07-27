@@ -42,8 +42,7 @@ class ImageService(val scheduleEntryRepository: ScheduleEntryRepository,
 
     private fun getWeekDates(year: Int, week: Int): String {
         var result: String
-        Calendar.getInstance().let {
-            it.firstDayOfWeek = Calendar.MONDAY
+        Calendar.getInstance(Locale("sv","SE")).let {
             it[Calendar.YEAR] = year
             it[Calendar.WEEK_OF_YEAR] = week
             it[Calendar.DAY_OF_WEEK] = it.firstDayOfWeek
