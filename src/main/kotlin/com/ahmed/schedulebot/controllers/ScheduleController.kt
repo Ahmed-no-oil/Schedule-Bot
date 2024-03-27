@@ -9,15 +9,15 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.CrossOrigin
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.ResponseBody
 import org.springframework.web.bind.annotation.RestController
 import java.util.*
 
 
 @RestController
 @CrossOrigin(origins = ["http://localhost:3000/", "https://elina.chat"])
-class ScheduleController(val dataService: ScheduleDataService,
-                         val imageService: ImageService
+class ScheduleController(
+    val dataService: ScheduleDataService,
+    val imageService: ImageService
 ) {
     private val LOGGER = LoggerFactory.getLogger(ScheduleController::class.java)
 
@@ -26,12 +26,12 @@ class ScheduleController(val dataService: ScheduleDataService,
     fun getScheduleTimesUtc(@PathVariable year: Int, @PathVariable week: Int): ResponseEntity<List<ScheduleDayUtc>> {
         try {
             val responseData =
-                    dataService.findWeekData(year,week)?.map { ScheduleDayUtc().of(it) }
-                            ?: return ResponseEntity.notFound()
-                                    .build()
+                dataService.findWeekData(year, week)?.map { ScheduleDayUtc().of(it) }
+                    ?: return ResponseEntity.notFound()
+                        .build()
             return ResponseEntity.ok(responseData)
         } catch (e: Exception) {
-            LOGGER.error("Controller error.", e)
+            LOGGER.error("Controller error (get_times_utc)", e)
             return ResponseEntity.internalServerError().header("error_msg", "Couldn't get week data").build()
         }
     }
@@ -39,12 +39,17 @@ class ScheduleController(val dataService: ScheduleDataService,
     @GetMapping("/{year}/week-{week}/schedule.jpg")
     fun getScheduleImage(@PathVariable year: Int, @PathVariable week: Int, response: HttpServletResponse) {
         val stream = response.outputStream
-        stream.write(imageService.getImage(year, week))
-        stream.flush()
+        try {
+            stream.write(imageService.getImage(year, week))
+            stream.flush()
+        } catch (e: Exception) {
+            LOGGER.error("Controller error (/${year}/week-${week}/schedule.jpg)", e)
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+        }
     }
 
     @GetMapping("/clear-cache")
-    fun clearImageCache():ResponseEntity<String> {
+    fun clearImageCache(): ResponseEntity<String> {
         imageService.clearImageCache()
         return ResponseEntity.ok("Cache cleared!")
     }

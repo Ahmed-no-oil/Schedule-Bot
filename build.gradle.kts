@@ -24,6 +24,7 @@ dependencies {
     implementation("org.hibernate.orm:hibernate-community-dialects:6.2.3.Final")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("net.coobird:thumbnailator:0.4.19")
     testImplementation("org.springframework.boot:spring-boot-starter-test"){
         exclude("org.mockito:mockito-core")
     }

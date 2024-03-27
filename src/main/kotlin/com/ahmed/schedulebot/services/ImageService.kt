@@ -1,15 +1,18 @@
 package com.ahmed.schedulebot.services
 
-import com.ahmed.schedulebot.entities.Week
 import com.ahmed.schedulebot.repositories.ScheduleEntryRepository
 import com.ahmed.schedulebot.repositories.WeekRepository
+import net.coobird.thumbnailator.Thumbnails
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
+import java.io.ByteArrayOutputStream
+import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 @Service
 class ImageService(val scheduleEntryRepository: ScheduleEntryRepository,
@@ -31,8 +34,8 @@ class ImageService(val scheduleEntryRepository: ScheduleEntryRepository,
             .writeTimes()
             .writeComments()
             .build()
-
-        return imageStream.readAllBytes() ?: byteArrayOf()
+        val compressedByteArray = compress(imageStream,0.5, 0.5)
+        return compressedByteArray ?: byteArrayOf()
     }
 
     @CacheEvict(value = ["schedule-image"], allEntries = true)
@@ -51,6 +54,16 @@ class ImageService(val scheduleEntryRepository: ScheduleEntryRepository,
             result += "-" + SimpleDateFormat("dd MMM", Locale.ENGLISH).format(it.time)
         }
         return result
+    }
+
+    fun compress(binaryData: InputStream?, scale: Double, quality: Double): ByteArray? {
+        if (binaryData != null) {
+                val baos = ByteArrayOutputStream()
+                Thumbnails.of(binaryData).scale(scale).outputQuality(quality)
+                    .toOutputStream(baos)
+                return baos.toByteArray()
+        }
+        return null
     }
 }
 
