@@ -20,8 +20,8 @@ class ImageService(val scheduleEntryRepository: ScheduleEntryRepository,
 
     @Cacheable(value = ["schedule-image"], unless = "#result.length == 0")
     fun getImage(year: Int, week: Int): ByteArray {
-        val weekObject = weekRepository.findByYearAndWeekNumber(year, week) ?: weekRepository.save(Week(year, week))
-        val scheduleEntries = scheduleEntryRepository.findByWeek(weekObject) ?: mutableListOf()
+        val weekObject = weekRepository.findByYearAndWeekNumber(year, week) ?: return byteArrayOf()
+        val scheduleEntries = scheduleEntryRepository.findByWeek(weekObject) ?: return byteArrayOf()
         val imageStream = scheduleImageBuilder.create(scheduleEntries)
             .drawBackground()
             .drawWeekDates(getWeekDates(year, week))

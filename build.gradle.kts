@@ -24,8 +24,12 @@ dependencies {
     implementation("org.hibernate.orm:hibernate-community-dialects:6.2.3.Final")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.1")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
-    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-test"){
+        exclude("org.mockito:mockito-core")
+    }
+    testImplementation ("io.mockk:mockk:1.13.10")
 }
+
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {
